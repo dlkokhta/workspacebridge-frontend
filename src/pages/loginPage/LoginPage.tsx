@@ -111,7 +111,8 @@ export const LoginPage = () => {
       }
 
       setAccessToken(response.data.accessToken);
-      navigate(response.data.user.role === "ADMIN" ? "/adminPanel" : "/dashboard");
+      const role = response.data.user.role;
+      navigate(role === "ADMIN" ? "/adminPanel" : role === "CLIENT" ? "/portal" : "/dashboard");
       reset();
     } catch (error: unknown) {
       const msg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;

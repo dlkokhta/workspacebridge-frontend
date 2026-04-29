@@ -279,17 +279,13 @@ export const OnboardingPage = () => {
                   Back
                 </button>
                 <button
-                  onClick={handleSendInvite}
-                  disabled={!email.trim() || sendingInvite}
+                  onClick={email.trim() ? handleSendInvite : () => setStep(3)}
+                  disabled={sendingInvite}
                   className="flex-[2] h-11 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {sendingInvite ? "Sending…" : <> Send invite <ArrowRight size={15} /> </>}
+                  {sendingInvite ? "Sending…" : email.trim() ? <> Send invite <ArrowRight size={15} /> </> : <> Continue <ArrowRight size={15} /> </>}
                 </button>
               </div>
-              <p className="mt-4 text-center text-[12px] text-[#858c87] dark:text-[#6e7672]">
-                You can also skip and invite later.{" "}
-                <button onClick={() => setStep(3)} className="text-[#5a8a6b] hover:underline">Skip</button>
-              </p>
             </div>
           )}
 

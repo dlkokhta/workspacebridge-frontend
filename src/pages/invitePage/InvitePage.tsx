@@ -27,6 +27,7 @@ export const InvitePage = () => {
   const [invite, setInvite] = useState<InviteInfo | null>(null);
   const [invalidMsg, setInvalidMsg] = useState("");
 
+  const [clientEmail, setClientEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -65,10 +66,13 @@ export const InvitePage = () => {
         accessToken: string;
         user: { id: string; email: string; role: string };
         workspaceId: string;
-      }>(`/invite/${token}/accept`, { password });
+      }>(`/invite/${token}/accept`, {
+        password,
+        ...(invite?.email ? {} : { email: clientEmail }),
+      });
       setAccessToken(res.data.accessToken);
       setPageState("done");
-      setTimeout(() => navigate(`/workspace/${res.data.workspaceId}`), 800);
+      setTimeout(() => navigate("/portal"), 800);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg ?? "Something went wrong. Please try again.");
@@ -158,6 +162,17 @@ export const InvitePage = () => {
               </p>
 
               <form onSubmit={handleAccept} className="space-y-3">
+                {!invite.email && (
+                  <input
+                    type="email"
+                    value={clientEmail}
+                    onChange={(e) => setClientEmail(e.target.value)}
+                    placeholder="Your email address"
+                    autoFocus
+                    required
+                    className="w-full h-[42px] px-3.5 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] text-[14px] text-[#1a201c] dark:text-[#e8ece9] placeholder-[#858c87] dark:placeholder-[#6e7672] outline-none hover:border-black/[0.14] dark:hover:border-white/[0.14] focus:border-[#5a8a6b] focus:ring-2 focus:ring-[#5a8a6b]/20 transition-all"
+                  />
+                )}
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -200,7 +215,7 @@ export const InvitePage = () => {
 
                 <button
                   type="submit"
-                  disabled={pageState === "accepting" || !password || !confirm}
+                  disabled={pageState === "accepting" || !password || !confirm || (!invite.email && !clientEmail)}
                   className="w-full h-11 mt-2 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {pageState === "accepting" ? "Joining…" : <> Join workspace <ArrowRight size={15} /> </>}

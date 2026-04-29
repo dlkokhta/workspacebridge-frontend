@@ -14,4 +14,5 @@ export const ROUTES = {
   Onboarding: "/onboarding",
   Dashboard: "/dashboard",
   Invite: "/invite/:token",
+  Portal: "/portal",
 } as const;
