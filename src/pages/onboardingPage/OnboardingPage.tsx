@@ -1,12 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Copy, Moon, Sun } from "lucide-react";
 import { axiosInstance } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
 const COLORS = ["#5a8a6b", "#7a9bbf", "#b5803a", "#9a7ab8", "#c25a4a", "#4f7aa3"];
-
-const MOCK_INVITE_LINK = "workspacebridge.app/join/wn-7k4a-9x2m";
 
 export const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -25,9 +23,23 @@ export const OnboardingPage = () => {
   // Step 2
   const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [sendingInvite, setSendingInvite] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteSent, setInviteSent] = useState(false);
+
+  useEffect(() => {
+    if (step === 2 && workspaceId) {
+      axiosInstance
+        .post<{ link: string }>(`/workspace/${workspaceId}/invite/link`)
+        .then((r) => setInviteLink(r.data.link))
+        .catch(() => undefined);
+    }
+  }, [step, workspaceId]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(MOCK_INVITE_LINK).catch(() => undefined);
+    if (!inviteLink) return;
+    navigator.clipboard.writeText(inviteLink).catch(() => undefined);
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   };
@@ -49,6 +61,22 @@ export const OnboardingPage = () => {
       setCreateError(msg ?? "Failed to create workspace. Please try again.");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleSendInvite = async () => {
+    if (!email.trim() || !workspaceId) return;
+    setSendingInvite(true);
+    setInviteError(null);
+    try {
+      await axiosInstance.post(`/workspace/${workspaceId}/invite`, { email: email.trim() });
+      setInviteSent(true);
+      setStep(3);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setInviteError(msg ?? "Failed to send invite. Please try again.");
+    } finally {
+      setSendingInvite(false);
     }
   };
 
@@ -229,16 +257,19 @@ export const OnboardingPage = () => {
                     <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
                   </svg>
                   <span className="font-mono text-[12px] text-[#5a625e] dark:text-[#a0a8a3] flex-1 truncate">
-                    {MOCK_INVITE_LINK}
+                    {inviteLink ?? "Generating link…"}
                   </span>
                   <button
                     onClick={handleCopy}
-                    className="h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[11px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-[#ebebе6] dark:hover:bg-[#222b26] transition-colors shrink-0"
+                    disabled={!inviteLink}
+                    className="h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[11px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-[#ebebе6] dark:hover:bg-[#222b26] transition-colors shrink-0 disabled:opacity-40"
                   >
                     {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
                   </button>
                 </div>
               </div>
+
+              {inviteError && <p className="mt-3 text-[13px] text-red-500">{inviteError}</p>}
 
               <div className="flex gap-2.5 mt-7">
                 <button
@@ -248,10 +279,11 @@ export const OnboardingPage = () => {
                   Back
                 </button>
                 <button
-                  onClick={() => setStep(3)}
-                  className="flex-[2] h-11 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors"
+                  onClick={handleSendInvite}
+                  disabled={!email.trim() || sendingInvite}
+                  className="flex-[2] h-11 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  Send invite <ArrowRight size={15} />
+                  {sendingInvite ? "Sending…" : <> Send invite <ArrowRight size={15} /> </>}
                 </button>
               </div>
               <p className="mt-4 text-center text-[12px] text-[#858c87] dark:text-[#6e7672]">
@@ -272,8 +304,8 @@ export const OnboardingPage = () => {
               </h1>
               <p className="text-[15px] text-[#5a625e] dark:text-[#a0a8a3] mb-8 max-w-[360px] mx-auto leading-relaxed">
                 <strong className="text-[#1a201c] dark:text-[#e8ece9] font-medium">{name || "Your workspace"}</strong> is ready.
-                {email.trim() && (
-                  <> We sent an invite to{" "}
+                {inviteSent && email.trim() && (
+                  <> An invite was sent to{" "}
                     <strong className="text-[#1a201c] dark:text-[#e8ece9] font-medium">{email}</strong>.
                   </>
                 )}

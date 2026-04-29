@@ -13,4 +13,5 @@ export const ROUTES = {
   Workspace: "/workspace/:id",
   Onboarding: "/onboarding",
   Dashboard: "/dashboard",
+  Invite: "/invite/:token",
 } as const;

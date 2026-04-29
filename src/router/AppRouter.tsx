@@ -8,6 +8,7 @@ import { LoginPage } from "../pages/loginPage";
 import { ROUTES } from "../constants";
 import { ProfilePage } from "../pages/profilePage";
 import { DashboardPage } from "../pages/dashboardPage";
+import { InvitePage } from "../pages/invitePage";
 import { GoogleAuthSuccess } from "../pages/googleAuthSuccess";
 import { WelcomePage } from "../pages/welcomePage";
 import { ProtectedRoute } from "../components/ProtectedRoute";
@@ -68,6 +69,7 @@ export const AppRouter = () => {
           </ProtectedRoute>
         }
       />
+      <Route path={ROUTES.Invite} element={<InvitePage />} />
       <Route
         path={ROUTES.AdminPanel}
         element={
