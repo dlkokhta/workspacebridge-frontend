@@ -341,7 +341,7 @@ export const ProfilePage = () => {
         {/* Header row */}
         <div className="px-3 pt-2 pb-1 flex items-center justify-between">
           <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-[#858c87] dark:text-[#6e7672]">Workspaces</div>
-          <button className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9]" title="New workspace">
+          <button onClick={() => navigate("/onboarding")} className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9]" title="New workspace">
             <Plus size={14} />
           </button>
         </div>

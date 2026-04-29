@@ -11,4 +11,5 @@ export const ROUTES = {
   AdminPanel: "/adminPanel",
   TwoFactorVerify: "/auth/2fa-verify",
   Workspace: "/workspace/:id",
+  Onboarding: "/onboarding",
 } as const;

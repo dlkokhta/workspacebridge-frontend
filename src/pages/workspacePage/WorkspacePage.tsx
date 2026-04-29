@@ -104,13 +104,7 @@ const SEED_FILES: FileItem[] = [
   { id: 8, name: "Contract — signed.pdf", kind: "PDF", size: "180 KB", mod: "3 weeks ago", by: "Sara", comments: 0, color: "#c25a4a" },
 ];
 
-const SEED_LINKS: SharedLink[] = [
-  { id: 1, title: "Brand mockups v3", url: "figma.com/file/northwind-v3", kind: "Figma", by: "Maya", added: "Today", color: "#5a8a6b" },
-  { id: 2, title: "Staging site", url: "northwind-staging.vercel.app", kind: "Website", by: "Maya", added: "Yesterday", color: "#7a9bbf" },
-  { id: 3, title: "Brand moodboard", url: "are.na/northwind-moodboard", kind: "Are.na", by: "Sara", added: "2 days ago", color: "#b5803a" },
-  { id: 4, title: "Photography references", url: "unsplash.com/collections/northwind", kind: "Unsplash", by: "Sara", added: "3 days ago", color: "#9a7ab8" },
-  { id: 5, title: "Copy deck", url: "notion.so/northwind-copy", kind: "Notion", by: "Maya", added: "1 week ago", color: "#4a514d" },
-];
+const SEED_LINKS: SharedLink[] = [];
 
 // ─── Small shared components ─────────────────────────────────────────────────
 
@@ -672,7 +666,7 @@ export const WorkspacePage = () => {
         {/* Workspaces header */}
         <div className="px-3 pt-2 pb-1 flex items-center justify-between">
           <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-[#858c87] dark:text-[#6e7672]">Workspaces</div>
-          <button className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9]" title="New workspace">
+          <button onClick={() => navigate("/onboarding")} className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9]" title="New workspace">
             <Plus size={14} />
           </button>
         </div>
