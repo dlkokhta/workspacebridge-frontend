@@ -351,6 +351,7 @@ export const ProfilePage = () => {
           {WORKSPACES.map((w) => (
             <div
               key={w.id}
+              onClick={() => navigate(`/workspace/${w.id}`)}
               className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[13px] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] hover:text-[#1a201c] dark:hover:text-[#e8ece9] transition-colors"
             >
               <span className="w-[22px] h-[22px] rounded-md flex items-center justify-center text-[10px] font-semibold text-white shrink-0" style={{ background: w.color }}>
@@ -384,6 +385,13 @@ export const ProfilePage = () => {
               </span>
               <span className="text-[11px] text-[#858c87] dark:text-[#6e7672]">Free plan</span>
             </span>
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              className="shrink-0 w-[22px] h-[22px] flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors"
+            >
+              <LogOut size={13} />
+            </button>
           </div>
         </div>
       </aside>

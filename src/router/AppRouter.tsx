@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 
 import { Homepage } from "../pages/homePage";
+import { WorkspacePage } from "../pages/workspacePage";
 import { RegistrationPage } from "../pages/registerPage";
 import { LoginPage } from "../pages/loginPage";
 import { ROUTES } from "../constants";
@@ -41,6 +42,14 @@ export const AppRouter = () => {
       <Route path={ROUTES.PasswordRecovery} element={<ForgotPasswordPage />} />
       <Route path={ROUTES.ResetPassword} element={<ResetPasswordPage />} />
       <Route path={ROUTES.TwoFactorVerify} element={<TwoFactorVerifyPage />} />
+      <Route
+        path={ROUTES.Workspace}
+        element={
+          <ProtectedRoute>
+            <WorkspacePage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path={ROUTES.AdminPanel}
         element={
