@@ -49,6 +49,24 @@ interface Workspace {
   color: string;
 }
 
+interface WorkspaceMember {
+  id: string;
+  role: string;
+  user: {
+    id: string;
+    firstname: string | null;
+    lastname: string | null;
+    email: string;
+    picture: string | null;
+  };
+}
+
+interface WorkspaceDetail extends Workspace {
+  status: string;
+  ownerId: string;
+  members: WorkspaceMember[];
+}
+
 interface Message {
   id: number;
   side: "me" | "them";
@@ -615,15 +633,12 @@ export const WorkspacePage = () => {
   const [tab, setTab] = useState<Tab>("messages");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [workspace, setWorkspace] = useState<WorkspaceDetail | null>(null);
 
   useEffect(() => {
     axiosInstance.get<UserProfile>("/user/me").catch(() => navigate("/login")).then((r) => r && setProfile(r.data));
-    axiosInstance.get<Workspace[]>("/workspace").then((r) => {
-      setWorkspaces(r.data);
-      const current = r.data.find((w) => w.id === id) ?? r.data[0] ?? null;
-      setWorkspace(current);
-    }).catch(() => navigate("/login"));
+    axiosInstance.get<Workspace[]>("/workspace").then((r) => setWorkspaces(r.data)).catch(() => navigate("/login"));
+    axiosInstance.get<WorkspaceDetail>(`/workspace/${id}`).then((r) => setWorkspace(r.data)).catch(() => navigate("/login"));
   }, [id, navigate]);
 
   const getInitials = () => {
