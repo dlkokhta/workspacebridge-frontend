@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Copy, Moon, Sun } from "lucide-react";
+import { axiosInstance } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
 const COLORS = ["#5a8a6b", "#7a9bbf", "#b5803a", "#9a7ab8", "#c25a4a", "#4f7aa3"];
@@ -17,6 +18,9 @@ export const OnboardingPage = () => {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [color, setColor] = useState(COLORS[0]);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
 
   // Step 2
   const [email, setEmail] = useState("");
@@ -26,6 +30,26 @@ export const OnboardingPage = () => {
     navigator.clipboard.writeText(MOCK_INVITE_LINK).catch(() => undefined);
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
+  };
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const res = await axiosInstance.post<{ id: string }>("/workspace", {
+        name: name.trim(),
+        description: desc.trim() || undefined,
+        color,
+      });
+      setWorkspaceId(res.data.id);
+      setStep(2);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setCreateError(msg ?? "Failed to create workspace. Please try again.");
+    } finally {
+      setCreating(false);
+    }
   };
 
   return (
@@ -94,7 +118,7 @@ export const OnboardingPage = () => {
                     autoFocus
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) setStep(2); }}
+                    onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) handleCreate(); }}
                     placeholder="e.g. Northwind Studio"
                     className="w-full h-[42px] px-3.5 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] text-[14px] text-[#1a201c] dark:text-[#e8ece9] placeholder-[#858c87] dark:placeholder-[#6e7672] outline-none hover:border-black/[0.14] dark:hover:border-white/[0.14] focus:border-[#5a8a6b] focus:ring-2 focus:ring-[#5a8a6b]/20 transition-all"
                   />
@@ -152,12 +176,15 @@ export const OnboardingPage = () => {
                 </div>
               )}
 
+              {createError && (
+                <p className="mt-4 text-[13px] text-red-500">{createError}</p>
+              )}
               <button
-                onClick={() => setStep(2)}
-                disabled={!name.trim()}
+                onClick={handleCreate}
+                disabled={!name.trim() || creating}
                 className="w-full h-11 mt-6 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] active:bg-[#446b52] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Continue <ArrowRight size={15} />
+                {creating ? "Creating…" : <> Continue <ArrowRight size={15} /> </>}
               </button>
             </div>
           )}
@@ -252,7 +279,7 @@ export const OnboardingPage = () => {
                 )}
               </p>
               <button
-                onClick={() => navigate("/workspace/northwind")}
+                onClick={() => navigate(`/workspace/${workspaceId}`)}
                 className="inline-flex items-center gap-2 h-11 px-6 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors"
               >
                 Open workspace <ArrowRight size={15} />
