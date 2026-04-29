@@ -42,6 +42,13 @@ interface UserProfile {
   picture: string | null;
 }
 
+interface Workspace {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string;
+}
+
 interface Message {
   id: number;
   side: "me" | "them";
@@ -75,14 +82,6 @@ interface SharedLink {
 }
 
 // ─── Static data ────────────────────────────────────────────────────────────
-
-const WORKSPACES = [
-  { id: "northwind", name: "Northwind Studio", sub: "Brand identity · Q3", mark: "N", color: "#5a8a6b" },
-  { id: "klar", name: "Klar Health", sub: "Landing page redesign", mark: "K", color: "#7a9bbf" },
-  { id: "fold", name: "Fold Coffee", sub: "Packaging system", mark: "F", color: "#b5803a" },
-  { id: "atlas", name: "Atlas Logistics", sub: "Mobile app concepts", mark: "A", color: "#9a7ab8" },
-  { id: "merit", name: "Merit & Co.", sub: "Annual report", mark: "M", color: "#5a8a6b" },
-];
 
 const SEED_MESSAGES: Message[] = [
   { id: 1, side: "them", name: "Sara Olsson", mark: "SO", color: "#7a9bbf", time: "9:42 AM", content: "Just looked at the logo concepts — really excited about direction 2. Could we explore a slightly warmer green? The current one feels a bit clinical." },
@@ -615,12 +614,17 @@ export const WorkspacePage = () => {
 
   const [tab, setTab] = useState<Tab>("messages");
   const [profile, setProfile] = useState<UserProfile | null>(null);
-
-  const workspace = WORKSPACES.find((w) => w.id === id) ?? WORKSPACES[0];
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
 
   useEffect(() => {
-    axiosInstance.get<UserProfile>("/user/me").then((r) => setProfile(r.data)).catch(() => navigate("/login"));
-  }, [navigate]);
+    axiosInstance.get<UserProfile>("/user/me").catch(() => navigate("/login")).then((r) => r && setProfile(r.data));
+    axiosInstance.get<Workspace[]>("/workspace").then((r) => {
+      setWorkspaces(r.data);
+      const current = r.data.find((w) => w.id === id) ?? r.data[0] ?? null;
+      setWorkspace(current);
+    }).catch(() => navigate("/login"));
+  }, [id, navigate]);
 
   const getInitials = () => {
     if (profile?.firstname && profile?.lastname) return `${profile.firstname[0]}${profile.lastname[0]}`.toUpperCase();
@@ -673,24 +677,29 @@ export const WorkspacePage = () => {
 
         {/* Workspace list */}
         <div className="px-2 flex-1 overflow-y-auto">
-          {WORKSPACES.map((w) => (
+          {workspaces.length === 0 && (
+            <button onClick={() => navigate("/onboarding")} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12px] text-[#5a8a6b] hover:bg-[#5a8a6b]/10 transition-colors">
+              <Plus size={13} /> New workspace
+            </button>
+          )}
+          {workspaces.map((w) => (
             <button
               key={w.id}
               onClick={() => navigate(`/workspace/${w.id}`)}
               className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors ${
-                w.id === workspace.id
+                w.id === id
                   ? "bg-[#5a8a6b]/10 text-[#1a201c] dark:text-[#e8ece9]"
                   : "text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
               }`}
             >
               <span className="w-[22px] h-[22px] rounded-md flex items-center justify-center text-[10px] font-semibold text-white shrink-0" style={{ background: w.color }}>
-                {w.mark}
+                {w.name[0].toUpperCase()}
               </span>
               <span className="flex flex-col min-w-0 flex-1 text-left">
                 <span className="font-medium truncate">{w.name}</span>
-                <span className="text-[11px] text-[#858c87] dark:text-[#6e7672] truncate">{w.sub}</span>
+                {w.description && <span className="text-[11px] text-[#858c87] dark:text-[#6e7672] truncate">{w.description}</span>}
               </span>
-              {w.id === workspace.id && <span className="w-1.5 h-1.5 rounded-full bg-[#5a8a6b] shrink-0" />}
+              {w.id === id && <span className="w-1.5 h-1.5 rounded-full bg-[#5a8a6b] shrink-0" />}
             </button>
           ))}
         </div>
@@ -735,7 +744,7 @@ export const WorkspacePage = () => {
         <header className="flex items-center justify-between px-6 py-4 border-b border-black/[0.06] dark:border-white/[0.05] bg-[#fafaf7] dark:bg-[#0e1310]">
           <div>
             <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-[#858c87] dark:text-[#6e7672]">Workspace</div>
-            <div className="text-[16px] font-semibold mt-0.5 text-[#1a201c] dark:text-[#e8ece9]">{workspace.name}</div>
+            <div className="text-[16px] font-semibold mt-0.5 text-[#1a201c] dark:text-[#e8ece9]">{workspace?.name ?? "…"}</div>
           </div>
           <div className="flex items-center gap-2">
             <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors">

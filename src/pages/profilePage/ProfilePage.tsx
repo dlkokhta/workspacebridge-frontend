@@ -33,13 +33,12 @@ interface UserProfile {
 
 type Section = "profile" | "workspace" | "notifications" | "billing" | "security";
 
-const WORKSPACES = [
-  { id: "northwind", name: "Northwind Studio", sub: "Brand identity · Q3", mark: "N", color: "#5a8a6b" },
-  { id: "klar", name: "Klar Health", sub: "Landing page redesign", mark: "K", color: "#7a9bbf" },
-  { id: "fold", name: "Fold Coffee", sub: "Packaging system", mark: "F", color: "#b5803a" },
-  { id: "atlas", name: "Atlas Logistics", sub: "Mobile app concepts", mark: "A", color: "#9a7ab8" },
-  { id: "merit", name: "Merit & Co.", sub: "Annual report", mark: "M", color: "#5a8a6b" },
-];
+interface Workspace {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string;
+}
 
 // ─── Building blocks ───────────────────────────────────────────────────────
 
@@ -130,6 +129,7 @@ export const ProfilePage = () => {
   const [section, setSection] = useState<Section>("profile");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
 
   // Profile
   const [firstName, setFirstName] = useState("");
@@ -174,6 +174,7 @@ export const ProfilePage = () => {
       }
     };
     fetchProfile();
+    axiosInstance.get<Workspace[]>("/workspace").then((r) => setWorkspaces(r.data)).catch(() => undefined);
   }, [navigate]);
 
   const handleLogout = async () => {
@@ -348,18 +349,23 @@ export const ProfilePage = () => {
 
         {/* List */}
         <div className="px-2 flex-1 overflow-y-auto">
-          {WORKSPACES.map((w) => (
+          {workspaces.length === 0 && (
+            <button onClick={() => navigate("/onboarding")} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12px] text-[#5a8a6b] hover:bg-[#5a8a6b]/10 transition-colors">
+              <Plus size={13} /> New workspace
+            </button>
+          )}
+          {workspaces.map((w) => (
             <div
               key={w.id}
               onClick={() => navigate(`/workspace/${w.id}`)}
               className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[13px] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] hover:text-[#1a201c] dark:hover:text-[#e8ece9] transition-colors"
             >
               <span className="w-[22px] h-[22px] rounded-md flex items-center justify-center text-[10px] font-semibold text-white shrink-0" style={{ background: w.color }}>
-                {w.mark}
+                {w.name[0].toUpperCase()}
               </span>
               <span className="flex flex-col min-w-0 flex-1">
                 <span className="font-medium truncate">{w.name}</span>
-                <span className="text-[11px] text-[#858c87] dark:text-[#6e7672] truncate">{w.sub}</span>
+                {w.description && <span className="text-[11px] text-[#858c87] dark:text-[#6e7672] truncate">{w.description}</span>}
               </span>
             </div>
           ))}
