@@ -27,7 +27,7 @@ export const GoogleAuthSuccess = () => {
       if (payload?.role === "ADMIN") {
         navigate("/adminPanel");
       } else {
-        navigate("/profile");
+        navigate("/dashboard");
       }
     } else {
       navigate("/login");

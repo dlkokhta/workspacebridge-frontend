@@ -1,4 +1,5 @@
 export * from "./homePage";
+export * from "./dashboardPage";
 export * from "./workspacePage";
 export * from "./onboardingPage";
 export * from "./registerPage";

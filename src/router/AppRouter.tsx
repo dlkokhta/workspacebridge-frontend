@@ -7,6 +7,7 @@ import { RegistrationPage } from "../pages/registerPage";
 import { LoginPage } from "../pages/loginPage";
 import { ROUTES } from "../constants";
 import { ProfilePage } from "../pages/profilePage";
+import { DashboardPage } from "../pages/dashboardPage";
 import { GoogleAuthSuccess } from "../pages/googleAuthSuccess";
 import { WelcomePage } from "../pages/welcomePage";
 import { ProtectedRoute } from "../components/ProtectedRoute";
@@ -56,6 +57,14 @@ export const AppRouter = () => {
         element={
           <ProtectedRoute>
             <WorkspacePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.Dashboard}
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
           </ProtectedRoute>
         }
       />

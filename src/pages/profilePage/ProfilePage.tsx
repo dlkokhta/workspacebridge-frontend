@@ -6,6 +6,7 @@ import {
   Eye,
   EyeOff,
   Folder,
+  LayoutDashboard,
   LogOut,
   Lock,
   Moon,
@@ -373,6 +374,15 @@ export const ProfilePage = () => {
 
         {/* Settings + user */}
         <div className="px-3 py-3 border-t border-black/[0.06] dark:border-white/[0.05]">
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] hover:text-[#1a201c] dark:hover:text-[#e8ece9] transition-colors mb-0.5"
+          >
+            <span className="w-[22px] h-[22px] rounded-md flex items-center justify-center bg-[#f3f3ee] dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] shrink-0">
+              <LayoutDashboard size={12} />
+            </span>
+            <span className="font-medium">Dashboard</span>
+          </Link>
           <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-[#5a8a6b]/10 text-[13px] text-[#1a201c] dark:text-[#e8ece9] mb-0.5">
             <span className="w-[22px] h-[22px] rounded-md flex items-center justify-center bg-[#f3f3ee] dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] shrink-0">
               <SettingsIcon size={12} />
