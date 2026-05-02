@@ -14,7 +14,7 @@
 
 ## What is this?
 
-The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration platform. The current scope covers the marketing homepage and the full authentication / account flow — the layer that the rest of the product is being built on top of.
+The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration platform. Freelancers create workspaces per client, invite them via magic link or email, and collaborate through messages, files, whiteboard, and shared links — all in one place.
 
 ## Tech Stack
 
@@ -36,21 +36,31 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
 - Animated landing page (hero, features, how-it-works, pricing, CTA, footer)
 - Light / dark mode (system preference + per-page toggle)
 - Two-column sign-in and registration pages with workspace preview + testimonial
-- Google OAuth one-click sign-in (GitHub button reserved as "coming soon")
+- Google OAuth one-click sign-in
 
 ### Auth flows
 - Register with email/password — validation via Yup, password strength meter
-- Login with email/password — show/hide password toggle
+- Login with email/password — role-aware redirect (freelancer → dashboard, client → portal)
 - TOTP 2FA — separate verification page after credential check
 - Email verification flow (after signup)
 - Forgot password / reset password flows
 - Auto token refresh on 401 via Axios interceptor
 - JWT access token kept in React state (never in `localStorage`)
 
-### Authenticated
-- Profile page — view + edit name, change password, enable/disable 2FA
-- Admin panel — list users, change role, delete user, pagination
-- Protected routes with role-based access control (`FREELANCER` / `CLIENT` / `ADMIN`)
+### Freelancer (authenticated)
+- **Dashboard** — workspace cards grid with status badges, stats bar (total/active/completed), empty state, new workspace card
+- **Onboarding** — 3-step flow: create workspace (name, description, color) → invite client (email or shareable link) → success
+- **Workspace page** — full app shell with workspace sidebar, 4 tabs:
+  - Messages — chat thread with file attachment support
+  - Files — grid / list view with upload
+  - Whiteboard — collaborative canvas mock with sticky notes and tools
+  - Shared Links — add/remove URLs shared with the client
+- **Profile / Settings** — edit name, change password, enable/disable 2FA, notification preferences (UI), billing preview
+- **Admin panel** — list users, change role, delete user, pagination
+
+### Client (invited)
+- **Invite page** (`/invite/:token`) — validates invite token, shows workspace info, client sets email (shareable link) + password → account created → enters workspace
+- **Portal** — clean minimal interface with no sidebar, same 4 tabs with client-appropriate actions, workspace name in header
 
 ## Getting Started
 
@@ -68,6 +78,7 @@ Create a `.env` file:
 
 ```env
 VITE_API_URL=http://localhost:4002
+VITE_SOCKET_URL=http://localhost:4002
 ```
 
 ### 3. Start the development server
@@ -86,14 +97,19 @@ npm run test:run
 
 ```
 src/
-├── components/       # Shared components (ProtectedRoute, RegistrationSuccess)
+├── components/       # Shared components (ProtectedRoute)
 ├── constants/        # Route constants
-├── context/          # AuthContext, ThemeContext
+├── context/          # AuthContext (JWT + Axios), ThemeContext (light/dark)
 ├── pages/
-│   ├── homePage/             # Landing page (hero, features, pricing, etc.)
-│   ├── loginPage/            # Sign in (two-column with workspace preview)
-│   ├── registerPage/         # Register (two-column with workspace preview)
-│   ├── profilePage/          # Profile + change password + 2FA
+│   ├── homePage/             # Landing page
+│   ├── loginPage/            # Sign in
+│   ├── registerPage/         # Register
+│   ├── dashboardPage/        # Freelancer home — workspace cards grid
+│   ├── onboardingPage/       # 3-step workspace creation + client invite
+│   ├── workspacePage/        # Workspace: Messages, Files, Whiteboard, Shared Links
+│   ├── portalPage/           # Client portal — minimal workspace view
+│   ├── invitePage/           # Client invite acceptance + account setup
+│   ├── profilePage/          # Profile + settings (password, 2FA, notifications, billing)
 │   ├── adminPage/            # Admin user management
 │   ├── verifyEmailPage/      # Email verification confirmation
 │   ├── forgotPasswordPage/   # Forgot password
@@ -108,15 +124,20 @@ src/
 
 ## Routes
 
-| Path | Description | Protected |
-|------|-------------|-----------|
-| `/` | Landing page | No |
-| `/register` | Register | No |
-| `/login` | Login | No |
-| `/auth/2fa-verify` | TOTP verification step | No (post-credentials) |
-| `/auth/verify-email` | Email verification | No |
-| `/auth/success` | Google OAuth callback | No |
-| `/passwordRecovery` | Forgot password | No |
-| `/auth/reset-password` | Reset password | No |
-| `/profile` | User profile | Yes |
-| `/adminPanel` | Admin panel | Yes (`ADMIN`) |
+| Path | Description | Protected | Role |
+|------|-------------|-----------|------|
+| `/` | Landing page | No | — |
+| `/register` | Register | No | — |
+| `/login` | Login | No | — |
+| `/auth/2fa-verify` | TOTP verification step | No | — |
+| `/auth/verify-email` | Email verification | No | — |
+| `/auth/success` | Google OAuth callback | No | — |
+| `/passwordRecovery` | Forgot password | No | — |
+| `/auth/reset-password` | Reset password | No | — |
+| `/invite/:token` | Client invite acceptance | No | — |
+| `/dashboard` | Freelancer home | Yes | FREELANCER |
+| `/onboarding` | Create workspace + invite | Yes | FREELANCER |
+| `/workspace/:id` | Workspace detail | Yes | FREELANCER |
+| `/portal` | Client workspace view | Yes | CLIENT |
+| `/profile` | Account settings | Yes | Any |
+| `/adminPanel` | Admin panel | Yes | ADMIN |
