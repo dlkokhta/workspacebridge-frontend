@@ -635,6 +635,8 @@ export const WorkspacePage = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [workspace, setWorkspace] = useState<WorkspaceDetail | null>(null);
+  const [confirmMember, setConfirmMember] = useState<WorkspaceMember | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
     axiosInstance.get<UserProfile>("/user/me").catch(() => navigate("/login")).then((r) => r && setProfile(r.data));
@@ -652,6 +654,22 @@ export const WorkspacePage = () => {
   const handleLogout = async () => {
     try { await axiosInstance.post("/auth/logout"); } catch { /* ignore */ }
     finally { setAccessToken(null); navigate("/login"); }
+  };
+
+  const handleRemoveMember = async () => {
+    if (!confirmMember || !workspace) return;
+    setRemoving(true);
+    try {
+      await axiosInstance.delete(`/workspace/${workspace.id}/members/${confirmMember.user.id}`);
+      setWorkspace((prev) =>
+        prev ? { ...prev, members: prev.members.filter((m) => m.id !== confirmMember.id) } : prev
+      );
+      setConfirmMember(null);
+    } catch {
+      // ignore — could show a toast here later
+    } finally {
+      setRemoving(false);
+    }
   };
 
   return (
@@ -816,6 +834,27 @@ export const WorkspacePage = () => {
               )}
             </button>
           ))}
+          {workspace?.members.filter((m) => m.role === "CLIENT").map((m) => (
+            <div key={m.id} className="relative group ml-1">
+              {m.user.picture ? (
+                <img src={m.user.picture} alt={m.user.email} className="w-7 h-7 rounded-full object-cover" title={m.user.email} />
+              ) : (
+                <div
+                  className="w-7 h-7 rounded-full bg-[#7a9bbf] text-white flex items-center justify-center text-[10px] font-semibold cursor-default"
+                  title={m.user.email}
+                >
+                  {m.user.firstname ? m.user.firstname[0].toUpperCase() : m.user.email[0].toUpperCase()}
+                </div>
+              )}
+              <button
+                onClick={() => setConfirmMember(m)}
+                className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#c25a4a] text-white hidden group-hover:flex items-center justify-center cursor-pointer"
+                title="Remove client"
+              >
+                <X size={9} />
+              </button>
+            </div>
+          ))}
         </div>
 
         {/* Tab content */}
@@ -826,6 +865,33 @@ export const WorkspacePage = () => {
           {tab === "shared-links" && <SharedLinksTab />}
         </div>
       </div>
+
+      {/* Remove member confirmation modal */}
+      {confirmMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-[360px] bg-white dark:bg-[#151a17] rounded-xl border border-black/[0.08] dark:border-white/[0.07] shadow-xl p-6">
+            <h2 className="text-[15px] font-semibold text-[#1a201c] dark:text-[#e8ece9] mb-1">Remove client</h2>
+            <p className="text-[13px] text-[#5a625e] dark:text-[#a0a8a3] mb-5">
+              Remove <span className="font-medium text-[#1a201c] dark:text-[#e8ece9]">{confirmMember.user.firstname ?? confirmMember.user.email}</span> from this workspace? They will lose access immediately.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmMember(null)}
+                className="flex-1 h-10 rounded-lg border border-black/[0.08] dark:border-white/[0.07] text-[13px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemoveMember}
+                disabled={removing}
+                className="flex-1 h-10 rounded-lg bg-[#c25a4a] hover:bg-[#b04f40] text-white text-[13px] font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {removing ? "Removing…" : "Remove"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
