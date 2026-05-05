@@ -145,7 +145,7 @@ export const LoginPage = () => {
           <button
             type="button"
             onClick={toggleTheme}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
@@ -166,7 +166,7 @@ export const LoginPage = () => {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="flex items-center justify-center gap-2 h-[42px] px-4 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[13px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] hover:border-black/[0.14] dark:hover:border-white/[0.14] transition-colors"
+              className="flex items-center justify-center gap-2 h-[42px] px-4 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[13px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] hover:border-black/[0.14] dark:hover:border-white/[0.14] transition-colors cursor-pointer"
             >
               <GoogleIcon />
               Continue with Google
@@ -240,7 +240,7 @@ export const LoginPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672] hover:text-[#5a625e] dark:hover:text-[#a0a8a3] transition-colors"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672] hover:text-[#5a625e] dark:hover:text-[#a0a8a3] transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -252,7 +252,7 @@ export const LoginPage = () => {
 
             <button
               type="submit"
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] active:bg-[#446b52] text-white text-[13px] font-medium transition-colors"
+              className="w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] active:bg-[#446b52] text-white text-[13px] font-medium transition-colors cursor-pointer"
             >
               Sign in <ArrowRight size={15} />
             </button>

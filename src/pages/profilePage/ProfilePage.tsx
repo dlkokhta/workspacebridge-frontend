@@ -74,7 +74,7 @@ const Toggle = ({ on, onChange }: { on: boolean; onChange: () => void }) => (
   <button
     type="button"
     onClick={onChange}
-    className={`w-8 h-[18px] rounded-full relative transition-colors shrink-0 ${
+    className={`w-8 h-[18px] rounded-full relative transition-colors shrink-0 cursor-pointer ${
       on ? "bg-[#5a8a6b]" : "bg-black/[0.16] dark:bg-white/[0.14]"
     }`}
     aria-pressed={on}
@@ -114,7 +114,7 @@ const SmallBtn = ({
       "border border-black/[0.08] dark:border-white/[0.07] bg-transparent text-[#c25a4a] dark:text-[#e07b6b] hover:bg-[#c25a4a]/[0.08]",
   } as const;
   return (
-    <button type={type} onClick={onClick} disabled={disabled} title={title} className={`${base} ${styles[variant]}`}>
+    <button type={type} onClick={onClick} disabled={disabled} title={title} className={`${base} ${styles[variant]} cursor-pointer`}>
       {children}
     </button>
   );
@@ -326,7 +326,7 @@ export const ProfilePage = () => {
             </span>
             WorkspaceBridge
           </Link>
-          <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors" title="Search">
+          <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors cursor-pointer" title="Search">
             <Search size={14} />
           </button>
         </div>
@@ -343,7 +343,7 @@ export const ProfilePage = () => {
         {/* Header row */}
         <div className="px-3 pt-2 pb-1 flex items-center justify-between">
           <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-[#858c87] dark:text-[#6e7672]">Workspaces</div>
-          <button onClick={() => navigate("/onboarding")} className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9]" title="New workspace">
+          <button onClick={() => navigate("/onboarding")} className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9] cursor-pointer" title="New workspace">
             <Plus size={14} />
           </button>
         </div>
@@ -351,7 +351,7 @@ export const ProfilePage = () => {
         {/* List */}
         <div className="px-2 flex-1 overflow-y-auto">
           {workspaces.length === 0 && (
-            <button onClick={() => navigate("/onboarding")} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12px] text-[#5a8a6b] hover:bg-[#5a8a6b]/10 transition-colors">
+            <button onClick={() => navigate("/onboarding")} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12px] text-[#5a8a6b] hover:bg-[#5a8a6b]/10 transition-colors cursor-pointer">
               <Plus size={13} /> New workspace
             </button>
           )}
@@ -404,7 +404,7 @@ export const ProfilePage = () => {
             <button
               onClick={handleLogout}
               title="Sign out"
-              className="shrink-0 w-[22px] h-[22px] flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors"
+              className="shrink-0 w-[22px] h-[22px] flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors cursor-pointer"
             >
               <LogOut size={13} />
             </button>
@@ -424,13 +424,13 @@ export const ProfilePage = () => {
             <button
               type="button"
               onClick={toggleTheme}
-              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
             </button>
             <button
-              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
               aria-label="Notifications"
             >
               <Bell size={14} />
@@ -448,7 +448,7 @@ export const ProfilePage = () => {
               <button
                 key={s.id}
                 onClick={() => setSection(s.id)}
-                className={`flex items-center gap-2 px-3 h-9 rounded-lg text-[13px] font-medium text-left whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-2 px-3 h-9 rounded-lg text-[13px] font-medium text-left whitespace-nowrap transition-colors cursor-pointer ${
                   section === s.id
                     ? "bg-[#5a8a6b]/10 text-[#1a201c] dark:text-[#e8ece9]"
                     : "text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
@@ -655,7 +655,7 @@ export const ProfilePage = () => {
                               <button
                                 type="button"
                                 onClick={() => setShowCurrent((v) => !v)}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672]"
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672] cursor-pointer"
                               >
                                 {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
                               </button>
@@ -671,7 +671,7 @@ export const ProfilePage = () => {
                               <button
                                 type="button"
                                 onClick={() => setShowNew((v) => !v)}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672]"
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672] cursor-pointer"
                               >
                                 {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
                               </button>

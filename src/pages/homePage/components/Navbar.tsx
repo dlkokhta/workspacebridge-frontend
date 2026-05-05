@@ -32,19 +32,19 @@ export const Navbar = () => {
         <div className="flex items-center gap-1.5">
           <button
             onClick={toggleTheme}
-            className="w-8 h-8 flex items-center justify-center rounded-md text-[#a0a8a3] hover:bg-black/5 dark:hover:bg-white/[0.07] hover:text-[#1a201c] dark:hover:text-[#e8ece9] transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-md text-[#a0a8a3] hover:bg-black/5 dark:hover:bg-white/[0.07] hover:text-[#1a201c] dark:hover:text-[#e8ece9] transition-colors cursor-pointer"
           >
             {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
           </button>
           <button
             onClick={() => navigate("/login")}
-            className="h-8 px-3 text-xs font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/5 dark:hover:bg-white/[0.07] hover:text-[#1a201c] dark:hover:text-[#e8ece9] rounded-md transition-colors"
+            className="h-8 px-3 text-xs font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/5 dark:hover:bg-white/[0.07] hover:text-[#1a201c] dark:hover:text-[#e8ece9] rounded-md transition-colors cursor-pointer"
           >
             Sign in
           </button>
           <button
             onClick={() => navigate("/register")}
-            className="h-8 px-3 text-xs font-medium text-white bg-[#5a8a6b] hover:bg-[#4f7a5e] rounded-md transition-colors"
+            className="h-8 px-3 text-xs font-medium text-white bg-[#5a8a6b] hover:bg-[#4f7a5e] rounded-md transition-colors cursor-pointer"
           >
             Get started
           </button>

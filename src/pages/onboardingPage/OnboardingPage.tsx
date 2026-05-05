@@ -100,7 +100,7 @@ export const OnboardingPage = () => {
           <span className="text-[12px] text-[#858c87] dark:text-[#6e7672]">Step {step} of 3</span>
           <button
             onClick={toggleTheme}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
@@ -262,7 +262,7 @@ export const OnboardingPage = () => {
                   <button
                     onClick={handleCopy}
                     disabled={!inviteLink}
-                    className="h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[11px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-[#ebebе6] dark:hover:bg-[#222b26] transition-colors shrink-0 disabled:opacity-40"
+                    className="h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[11px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-[#ebebе6] dark:hover:bg-[#222b26] transition-colors shrink-0 disabled:opacity-40 cursor-pointer"
                   >
                     {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
                   </button>
@@ -274,7 +274,7 @@ export const OnboardingPage = () => {
               <div className="flex gap-2.5 mt-7">
                 <button
                   onClick={() => setStep(1)}
-                  className="flex-1 h-11 rounded-lg border border-black/[0.08] dark:border-white/[0.07] text-[14px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
+                  className="flex-1 h-11 rounded-lg border border-black/[0.08] dark:border-white/[0.07] text-[14px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
                 >
                   Back
                 </button>
@@ -308,13 +308,13 @@ export const OnboardingPage = () => {
               </p>
               <button
                 onClick={() => navigate(`/workspace/${workspaceId}`)}
-                className="inline-flex items-center gap-2 h-11 px-6 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors"
+                className="inline-flex items-center gap-2 h-11 px-6 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors cursor-pointer"
               >
                 Open workspace <ArrowRight size={15} />
               </button>
               <p className="mt-8 text-[13px] text-[#858c87] dark:text-[#6e7672]">
                 Need to invite more people?{" "}
-                <button className="text-[#5a8a6b] hover:underline">Add team members</button>
+                <button className="text-[#5a8a6b] hover:underline cursor-pointer">Add team members</button>
               </p>
             </div>
           )}

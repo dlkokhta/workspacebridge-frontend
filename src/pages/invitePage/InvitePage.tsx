@@ -94,7 +94,7 @@ export const InvitePage = () => {
         </div>
         <button
           onClick={toggleTheme}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
           aria-label="Toggle theme"
         >
           {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
@@ -123,7 +123,7 @@ export const InvitePage = () => {
               <p className="text-[14px] text-[#858c87] dark:text-[#6e7672] mb-6">{invalidMsg}</p>
               <button
                 onClick={() => navigate("/login")}
-                className="h-10 px-5 inline-flex items-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[13px] font-medium transition-colors"
+                className="h-10 px-5 inline-flex items-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[13px] font-medium transition-colors cursor-pointer"
               >
                 Go to login
               </button>
@@ -187,7 +187,7 @@ export const InvitePage = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672] cursor-pointer"
                   >
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
@@ -205,7 +205,7 @@ export const InvitePage = () => {
                   <button
                     type="button"
                     onClick={() => setShowConfirm((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#858c87] dark:text-[#6e7672] cursor-pointer"
                   >
                     {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
@@ -216,7 +216,7 @@ export const InvitePage = () => {
                 <button
                   type="submit"
                   disabled={pageState === "accepting" || !password || !confirm || (!invite.email && !clientEmail)}
-                  className="w-full h-11 mt-2 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full h-11 mt-2 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {pageState === "accepting" ? "Joining…" : <> Join workspace <ArrowRight size={15} /> </>}
                 </button>
@@ -224,7 +224,7 @@ export const InvitePage = () => {
 
               <p className="mt-5 text-center text-[12px] text-[#858c87] dark:text-[#6e7672]">
                 Already have an account?{" "}
-                <button onClick={() => navigate("/login")} className="text-[#5a8a6b] hover:underline">Sign in</button>
+                <button onClick={() => navigate("/login")} className="text-[#5a8a6b] hover:underline cursor-pointer">Sign in</button>
               </p>
             </div>
           )}

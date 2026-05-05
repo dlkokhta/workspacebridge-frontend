@@ -103,7 +103,7 @@ export const DashboardPage = () => {
             </span>
             WorkspaceBridge
           </Link>
-          <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors" title="Search">
+          <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors cursor-pointer" title="Search">
             <Search size={14} />
           </button>
         </div>
@@ -118,14 +118,14 @@ export const DashboardPage = () => {
 
         <div className="px-3 pt-2 pb-1 flex items-center justify-between">
           <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-[#858c87] dark:text-[#6e7672]">Workspaces</div>
-          <button onClick={() => navigate("/onboarding")} className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9]" title="New workspace">
+          <button onClick={() => navigate("/onboarding")} className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9] cursor-pointer" title="New workspace">
             <Plus size={14} />
           </button>
         </div>
 
         <div className="px-2 flex-1 overflow-y-auto">
           {workspaces.length === 0 && (
-            <button onClick={() => navigate("/onboarding")} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12px] text-[#5a8a6b] hover:bg-[#5a8a6b]/10 transition-colors">
+            <button onClick={() => navigate("/onboarding")} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12px] text-[#5a8a6b] hover:bg-[#5a8a6b]/10 transition-colors cursor-pointer">
               <Plus size={13} /> New workspace
             </button>
           )}
@@ -171,7 +171,7 @@ export const DashboardPage = () => {
             <button
               onClick={handleLogout}
               title="Sign out"
-              className="shrink-0 w-[22px] h-[22px] flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors"
+              className="shrink-0 w-[22px] h-[22px] flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors cursor-pointer"
             >
               <LogOut size={13} />
             </button>
@@ -190,20 +190,20 @@ export const DashboardPage = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate("/onboarding")}
-              className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[12px] font-medium transition-colors"
+              className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[12px] font-medium transition-colors cursor-pointer"
             >
               <Plus size={13} />
               New workspace
             </button>
             <button
               onClick={toggleTheme}
-              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
             </button>
             <button
-              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
               aria-label="Notifications"
             >
               <Bell size={14} />
@@ -250,7 +250,7 @@ export const DashboardPage = () => {
               </p>
               <button
                 onClick={() => navigate("/onboarding")}
-                className="h-9 px-4 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[13px] font-medium transition-colors"
+                className="h-9 px-4 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[13px] font-medium transition-colors cursor-pointer"
               >
                 <Plus size={14} />
                 Create workspace
@@ -265,7 +265,7 @@ export const DashboardPage = () => {
                 <button
                   key={w.id}
                   onClick={() => navigate(`/workspace/${w.id}`)}
-                  className="text-left rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden hover:border-black/[0.14] dark:hover:border-white/[0.14] hover:shadow-sm transition-all group"
+                  className="text-left rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden hover:border-black/[0.14] dark:hover:border-white/[0.14] hover:shadow-sm transition-all group cursor-pointer"
                 >
                   {/* Color bar */}
                   <div className="h-1.5 w-full" style={{ background: w.color }} />
@@ -299,7 +299,7 @@ export const DashboardPage = () => {
               {/* New workspace card */}
               <button
                 onClick={() => navigate("/onboarding")}
-                className="text-left rounded-xl border border-dashed border-black/[0.12] dark:border-white/[0.09] hover:border-[#5a8a6b]/50 hover:bg-[#5a8a6b]/[0.03] transition-all group min-h-[140px] flex flex-col items-center justify-center gap-2 p-4"
+                className="text-left rounded-xl border border-dashed border-black/[0.12] dark:border-white/[0.09] hover:border-[#5a8a6b]/50 hover:bg-[#5a8a6b]/[0.03] transition-all group min-h-[140px] flex flex-col items-center justify-center gap-2 p-4 cursor-pointer"
               >
                 <div className="w-9 h-9 rounded-lg border-2 border-dashed border-black/[0.12] dark:border-white/[0.09] group-hover:border-[#5a8a6b]/50 flex items-center justify-center text-[#858c87] dark:text-[#6e7672] group-hover:text-[#5a8a6b] transition-colors">
                   <Plus size={16} />

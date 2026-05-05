@@ -169,7 +169,7 @@ export const ResetPasswordPage = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-500 text-white py-2.5 px-4 text-sm rounded-md hover:bg-blue-600 transition-colors font-medium disabled:opacity-60"
+            className="w-full bg-blue-500 text-white py-2.5 px-4 text-sm rounded-md hover:bg-blue-600 transition-colors font-medium disabled:opacity-60 cursor-pointer"
           >
             {isSubmitting ? "Resetting..." : "Reset password"}
           </button>

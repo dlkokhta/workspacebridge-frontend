@@ -134,10 +134,10 @@ export const AppPreview = () => (
                 <div className="text-[11px] text-[#858c87] dark:text-[#6e7672]">Web app development · Q3 2026</div>
               </div>
               <div className="flex gap-1.5">
-                <button className="h-7 px-2.5 flex items-center gap-1.5 text-[12px] text-[#5a625e] dark:text-[#a0a8a3] border border-black/[0.08] dark:border-white/[0.07] rounded-md bg-white dark:bg-[#151a17]">
+                <button className="h-7 px-2.5 flex items-center gap-1.5 text-[12px] text-[#5a625e] dark:text-[#a0a8a3] border border-black/[0.08] dark:border-white/[0.07] rounded-md bg-white dark:bg-[#151a17] cursor-pointer">
                   <Users size={12} /> 2
                 </button>
-                <button className="h-7 px-2.5 flex items-center gap-1.5 text-[12px] text-[#5a625e] dark:text-[#a0a8a3] border border-black/[0.08] dark:border-white/[0.07] rounded-md bg-white dark:bg-[#151a17]">
+                <button className="h-7 px-2.5 flex items-center gap-1.5 text-[12px] text-[#5a625e] dark:text-[#a0a8a3] border border-black/[0.08] dark:border-white/[0.07] rounded-md bg-white dark:bg-[#151a17] cursor-pointer">
                   <Link2 size={12} /> Share
                 </button>
               </div>
@@ -191,7 +191,7 @@ export const AppPreview = () => (
                 <Paperclip size={14} className="text-[#a0a8a3]" />
                 <span className="text-[12px] text-[#b5bbb7] dark:text-[#4a514d] flex-1">Reply to Sara…</span>
                 <Smile size={14} className="text-[#a0a8a3]" />
-                <button className="w-7 h-7 flex items-center justify-center bg-[#5a8a6b] text-white rounded-md">
+                <button className="w-7 h-7 flex items-center justify-center bg-[#5a8a6b] text-white rounded-md cursor-pointer">
                   <Send size={12} />
                 </button>
               </div>

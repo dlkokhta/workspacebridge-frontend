@@ -203,7 +203,7 @@ const MessagesTab = ({ initials }: { initials: string }) => {
                       <div className="text-[13px] font-medium text-[#1a201c] dark:text-[#e8ece9] truncate">{m.attachment.name}</div>
                       <div className="text-[11px] text-[#858c87] dark:text-[#6e7672]">{m.attachment.meta}</div>
                     </div>
-                    <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05]">
+                    <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer">
                       <Download size={14} />
                     </button>
                   </div>
@@ -218,7 +218,7 @@ const MessagesTab = ({ initials }: { initials: string }) => {
       {/* Composer */}
       <div className="px-6 pb-5 pt-3 border-t border-black/[0.06] dark:border-white/[0.05]">
         <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-[#151a17] border border-black/[0.08] dark:border-white/[0.07] rounded-xl">
-          <button className="w-8 h-8 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05]">
+          <button className="w-8 h-8 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer">
             <Paperclip size={15} />
           </button>
           <input
@@ -228,7 +228,7 @@ const MessagesTab = ({ initials }: { initials: string }) => {
             placeholder="Reply to Sara…"
             className="flex-1 bg-transparent outline-none text-[14px] text-[#1a201c] dark:text-[#e8ece9] placeholder-[#858c87] dark:placeholder-[#6e7672] py-1.5"
           />
-          <button className="w-8 h-8 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05]">
+          <button className="w-8 h-8 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer">
             <Smile size={15} />
           </button>
           <button
@@ -261,13 +261,13 @@ const FilesTab = () => {
       {/* Toolbar */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.05]">
         <div className="flex gap-1.5">
-          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#1a201c] dark:text-[#e8ece9]">
+          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#1a201c] dark:text-[#e8ece9] cursor-pointer">
             <Folder size={13} /> All files
           </button>
-          <button className="h-8 px-3 inline-flex items-center rounded-lg text-[12px] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors">
+          <button className="h-8 px-3 inline-flex items-center rounded-lg text-[12px] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors cursor-pointer">
             Moodboard
           </button>
-          <button className="h-8 px-3 inline-flex items-center rounded-lg text-[12px] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors">
+          <button className="h-8 px-3 inline-flex items-center rounded-lg text-[12px] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors cursor-pointer">
             Deliverables
           </button>
         </div>
@@ -275,21 +275,21 @@ const FilesTab = () => {
           <div className="flex bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] rounded-lg p-0.5">
             <button
               onClick={() => setView("grid")}
-              className={`w-7 h-7 flex items-center justify-center rounded-md text-[#5a625e] dark:text-[#a0a8a3] transition-colors ${view === "grid" ? "bg-white dark:bg-[#2a342e] text-[#1a201c] dark:text-[#e8ece9]" : "hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"}`}
+              className={`w-7 h-7 flex items-center justify-center rounded-md text-[#5a625e] dark:text-[#a0a8a3] transition-colors cursor-pointer ${view === "grid" ? "bg-white dark:bg-[#2a342e] text-[#1a201c] dark:text-[#e8ece9]" : "hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"}`}
             >
               <Grid3X3 size={13} />
             </button>
             <button
               onClick={() => setView("list")}
-              className={`w-7 h-7 flex items-center justify-center rounded-md text-[#5a625e] dark:text-[#a0a8a3] transition-colors ${view === "list" ? "bg-white dark:bg-[#2a342e] text-[#1a201c] dark:text-[#e8ece9]" : "hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"}`}
+              className={`w-7 h-7 flex items-center justify-center rounded-md text-[#5a625e] dark:text-[#a0a8a3] transition-colors ${view === "list" ? "bg-white dark:bg-[#2a342e] text-[#1a201c] dark:text-[#e8ece9]" : "hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"} cursor-pointer`}
             >
               <List size={13} />
             </button>
           </div>
-          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors">
+          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer">
             <Filter size={13} /> Filter
           </button>
-          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[12px] font-medium transition-colors">
+          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[12px] font-medium transition-colors cursor-pointer">
             <Plus size={13} /> Upload
           </button>
         </div>
@@ -337,7 +337,7 @@ const FilesTab = () => {
                 <span className="text-[#5a625e] dark:text-[#a0a8a3]">{f.size}</span>
                 <span className="text-[#5a625e] dark:text-[#a0a8a3]">{f.mod}</span>
                 <span className="text-[#5a625e] dark:text-[#a0a8a3]">{f.by}</span>
-                <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05]">
+                <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer">
                   <MoreHorizontal size={13} />
                 </button>
               </div>
@@ -374,10 +374,10 @@ const WhiteboardTab = () => {
           </span>
         </div>
         <div className="flex gap-1.5">
-          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors">
+          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer">
             <Download size={13} /> Export
           </button>
-          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[12px] font-medium transition-colors">
+          <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[12px] font-medium transition-colors cursor-pointer">
             <Plus size={13} /> New board
           </button>
         </div>
@@ -493,7 +493,7 @@ const AddLinkModal = ({
       <div className="w-full max-w-md bg-white dark:bg-[#151a17] border border-black/[0.08] dark:border-white/[0.07] rounded-2xl p-7 shadow-xl">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-[18px] font-semibold text-[#1a201c] dark:text-[#e8ece9]">Add a link</h3>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05]">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer">
             <X size={14} />
           </button>
         </div>
@@ -519,7 +519,7 @@ const AddLinkModal = ({
           </div>
         </div>
         <div className="flex gap-2.5 mt-6">
-          <button onClick={onClose} className="flex-1 h-10 rounded-lg border border-black/[0.08] dark:border-white/[0.07] text-[13px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors">
+          <button onClick={onClose} className="flex-1 h-10 rounded-lg border border-black/[0.08] dark:border-white/[0.07] text-[13px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors cursor-pointer">
             Cancel
           </button>
           <button
@@ -552,7 +552,7 @@ const SharedLinksTab = () => {
           </span>
           <button
             onClick={() => setShowModal(true)}
-            className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[12px] font-medium transition-colors"
+            className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[12px] font-medium transition-colors cursor-pointer"
           >
             <Plus size={13} /> Add link
           </button>
@@ -571,7 +571,7 @@ const SharedLinksTab = () => {
               </div>
               <button
                 onClick={() => setShowModal(true)}
-                className="mt-1 h-9 px-4 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[13px] font-medium transition-colors"
+                className="mt-1 h-9 px-4 inline-flex items-center gap-1.5 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[13px] font-medium transition-colors cursor-pointer"
               >
                 <Plus size={13} /> Add first link
               </button>
@@ -598,7 +598,7 @@ const SharedLinksTab = () => {
                   </a>
                   <button
                     onClick={() => setLinks((prev) => prev.filter((x) => x.id !== l.id))}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-[#c25a4a]/10 hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-[#c25a4a]/10 hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors cursor-pointer"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -669,7 +669,7 @@ export const WorkspacePage = () => {
             </span>
             WorkspaceBridge
           </Link>
-          <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05]" title="Search">
+          <button className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer" title="Search">
             <Search size={14} />
           </button>
         </div>
@@ -686,7 +686,7 @@ export const WorkspacePage = () => {
         {/* Workspaces header */}
         <div className="px-3 pt-2 pb-1 flex items-center justify-between">
           <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-[#858c87] dark:text-[#6e7672]">Workspaces</div>
-          <button onClick={() => navigate("/onboarding")} className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9]" title="New workspace">
+          <button onClick={() => navigate("/onboarding")} className="text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9] cursor-pointer" title="New workspace">
             <Plus size={14} />
           </button>
         </div>
@@ -694,7 +694,7 @@ export const WorkspacePage = () => {
         {/* Workspace list */}
         <div className="px-2 flex-1 overflow-y-auto">
           {workspaces.length === 0 && (
-            <button onClick={() => navigate("/onboarding")} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12px] text-[#5a8a6b] hover:bg-[#5a8a6b]/10 transition-colors">
+            <button onClick={() => navigate("/onboarding")} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12px] text-[#5a8a6b] hover:bg-[#5a8a6b]/10 transition-colors cursor-pointer">
               <Plus size={13} /> New workspace
             </button>
           )}
@@ -702,7 +702,7 @@ export const WorkspacePage = () => {
             <button
               key={w.id}
               onClick={() => navigate(`/workspace/${w.id}`)}
-              className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors ${
+              className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors cursor-pointer ${
                 w.id === id
                   ? "bg-[#5a8a6b]/10 text-[#1a201c] dark:text-[#e8ece9]"
                   : "text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
@@ -755,7 +755,7 @@ export const WorkspacePage = () => {
             <button
               onClick={handleLogout}
               title="Sign out"
-              className="shrink-0 w-[22px] h-[22px] flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors"
+              className="shrink-0 w-[22px] h-[22px] flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors cursor-pointer"
             >
               <LogOut size={13} />
             </button>
@@ -772,17 +772,17 @@ export const WorkspacePage = () => {
             <div className="text-[16px] font-semibold mt-0.5 text-[#1a201c] dark:text-[#e8ece9]">{workspace?.name ?? "…"}</div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors">
+            <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer">
               <Share2 size={13} /> Share
             </button>
             <button
               onClick={toggleTheme}
-              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
             </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors" aria-label="Notifications">
+            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer" aria-label="Notifications">
               <Bell size={14} />
             </button>
             {profile?.picture ? (
@@ -801,7 +801,7 @@ export const WorkspacePage = () => {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 h-11 px-1 mr-5 text-[13px] font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 h-11 px-1 mr-5 text-[13px] font-medium border-b-2 transition-colors cursor-pointer ${
                 tab === t.id
                   ? "border-[#5a8a6b] text-[#1a201c] dark:text-[#e8ece9]"
                   : "border-transparent text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9]"

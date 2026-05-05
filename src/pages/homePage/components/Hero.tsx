@@ -106,14 +106,14 @@ export const Hero = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate("/register")}
-              className="inline-flex items-center gap-2 h-12 px-5 bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[15px] font-medium rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 h-12 px-5 bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[15px] font-medium rounded-lg transition-colors cursor-pointer"
             >
               Create your workspace <ArrowRight size={15} />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center gap-2 h-12 px-5 border border-black/[0.16] dark:border-white/[0.14] text-[#1a201c] dark:text-[#e8ece9] hover:bg-black/5 dark:hover:bg-white/[0.04] text-[15px] font-medium rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 h-12 px-5 border border-black/[0.16] dark:border-white/[0.14] text-[#1a201c] dark:text-[#e8ece9] hover:bg-black/5 dark:hover:bg-white/[0.04] text-[15px] font-medium rounded-lg transition-colors cursor-pointer"
             >
               See a demo
             </motion.button>

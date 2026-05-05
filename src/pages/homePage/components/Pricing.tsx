@@ -37,7 +37,7 @@ const PriceCard = ({
     </div>
     <button
       onClick={onCtaClick}
-      className={`w-full h-10 rounded-lg text-[14px] font-medium mb-6 transition-colors ${
+      className={`w-full h-10 rounded-lg text-[14px] font-medium mb-6 transition-colors cursor-pointer ${
         highlight
           ? "bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white"
           : "bg-[#f3f3ee] dark:bg-[#1c221e] hover:bg-black/5 dark:hover:bg-white/5 text-[#1a201c] dark:text-[#e8ece9] border border-black/[0.08] dark:border-white/[0.07]"
