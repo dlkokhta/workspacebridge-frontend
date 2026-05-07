@@ -18,6 +18,7 @@ import { ForgotPasswordPage } from "../pages/forgotPasswordPage";
 import { ResetPasswordPage } from "../pages/resetPasswordPage";
 import { AdminPage } from "../pages/adminPage";
 import { TwoFactorVerifyPage } from "../pages/twoFactorVerifyPage";
+import { AppShell } from "../layouts/AppShell";
 
 export const AppRouter = () => {
   return (
@@ -32,14 +33,6 @@ export const AppRouter = () => {
             <WelcomePage />
           </ProtectedRoute>
         } 
-      />
-      <Route
-        path={ROUTES.Profile}
-        element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        }
       />
       <Route path={ROUTES.GoogleAuthSuccess} element={<GoogleAuthSuccess />} />
       <Route path={ROUTES.VerifyEmail} element={<VerifyEmailPage />} />
@@ -62,14 +55,18 @@ export const AppRouter = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* AppShell layout — sidebar always visible, right side changes */}
       <Route
-        path={ROUTES.Dashboard}
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <AppShell />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path={ROUTES.Dashboard} element={<DashboardPage />} />
+        <Route path={ROUTES.Profile} element={<ProfilePage />} />
+      </Route>
       <Route path={ROUTES.Invite} element={<InvitePage />} />
       <Route
         path={ROUTES.Portal}
