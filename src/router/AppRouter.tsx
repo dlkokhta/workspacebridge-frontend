@@ -66,6 +66,7 @@ export const AppRouter = () => {
       >
         <Route path={ROUTES.Dashboard} element={<DashboardPage />} />
         <Route path={ROUTES.Profile} element={<ProfilePage />} />
+        <Route path={ROUTES.Settings} element={<ProfilePage />} />
       </Route>
       <Route path={ROUTES.Invite} element={<InvitePage />} />
       <Route
