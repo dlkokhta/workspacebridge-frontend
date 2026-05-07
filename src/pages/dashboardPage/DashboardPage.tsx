@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
 import { Bell, Moon, Plus, Sun } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { AppShellContext } from "../../layouts/AppShell";
+import type { AppShellContext } from "../../layouts/AppShell";
 
 const STATUS_LABEL = {
   ACTIVE: "Active",
