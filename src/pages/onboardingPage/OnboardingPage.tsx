@@ -175,7 +175,7 @@ export const OnboardingPage = () => {
                         key={c}
                         type="button"
                         onClick={() => setColor(c)}
-                        className="w-8 h-8 rounded-lg transition-all"
+                        className="w-8 h-8 rounded-lg transition-all cursor-pointer"
                         style={{
                           background: c,
                           outline: color === c ? `2px solid ${c}` : "2px solid transparent",
@@ -210,7 +210,7 @@ export const OnboardingPage = () => {
               <button
                 onClick={handleCreate}
                 disabled={!name.trim() || creating}
-                className="w-full h-11 mt-6 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] active:bg-[#446b52] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full h-11 mt-6 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] active:bg-[#446b52] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {creating ? "Creating…" : <> Continue <ArrowRight size={15} /> </>}
               </button>
@@ -281,7 +281,7 @@ export const OnboardingPage = () => {
                 <button
                   onClick={email.trim() ? handleSendInvite : () => setStep(3)}
                   disabled={sendingInvite}
-                  className="flex-[2] h-11 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-[2] h-11 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {sendingInvite ? "Sending…" : email.trim() ? <> Send invite <ArrowRight size={15} /> </> : <> Continue <ArrowRight size={15} /> </>}
                 </button>
