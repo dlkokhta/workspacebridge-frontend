@@ -1,4 +1,4 @@
-import { File, Link as LinkIcon, MessageCircle, Pencil, X } from "lucide-react";
+import { File, Link as LinkIcon, MessageCircle, Pencil, Settings, X } from "lucide-react";
 import type { Tab, WorkspaceMember } from "../types";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
@@ -6,6 +6,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] 
   { id: "files", label: "Files", icon: <File size={14} />, count: 12 },
   { id: "whiteboard", label: "Whiteboard", icon: <Pencil size={14} /> },
   { id: "shared-links", label: "Shared Links", icon: <LinkIcon size={14} /> },
+  { id: "settings", label: "Settings", icon: <Settings size={14} /> },
 ];
 
 interface WorkspaceTabBarProps {

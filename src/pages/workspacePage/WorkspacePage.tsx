@@ -10,6 +10,7 @@ import { MessagesTab } from "./tabs/MessagesTab";
 import { FilesTab } from "./tabs/FilesTab";
 import { WhiteboardTab } from "./tabs/WhiteboardTab";
 import { SharedLinksTab } from "./tabs/SharedLinksTab";
+import { SettingsTab } from "./tabs/SettingsTab";
 import type { Tab, UserProfile, Workspace, WorkspaceDetail, WorkspaceMember } from "./types";
 
 export const WorkspacePage = () => {
@@ -107,6 +108,9 @@ export const WorkspacePage = () => {
           {tab === "files" && <FilesTab />}
           {tab === "whiteboard" && <WhiteboardTab />}
           {tab === "shared-links" && <SharedLinksTab />}
+          {tab === "settings" && workspace && (
+            <SettingsTab workspace={workspace} onUpdate={setWorkspace} />
+          )}
         </div>
       </div>
 

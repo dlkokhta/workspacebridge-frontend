@@ -1,4 +1,4 @@
-export type Tab = "messages" | "files" | "whiteboard" | "shared-links";
+export type Tab = "messages" | "files" | "whiteboard" | "shared-links" | "settings";
 
 export interface UserProfile {
   firstname: string | null;
