@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CaptureUpdateAction, Excalidraw } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import type {
+  Collaborator,
   ExcalidrawImperativeAPI,
+  SocketId,
 } from "@excalidraw/excalidraw/types";
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import { useWhiteboardSocket } from "../../../hooks/useWhiteboardSocket";
@@ -19,18 +21,91 @@ interface SceneUpdatePayload {
   elements: unknown[];
 }
 
+interface RemotePointerPayload {
+  userId: string;
+  email: string;
+  pointer: { x: number; y: number };
+  button?: "up" | "down";
+}
+
+interface CollaboratorLeftPayload {
+  userId: string;
+}
+
+interface CollaboratorEntry {
+  pointer: { x: number; y: number };
+  button?: "up" | "down";
+  email: string;
+  lastSeen: number;
+}
+
 const SYNC_DEBOUNCE_MS = 300;
+const POINTER_THROTTLE_MS = 50;
+const COLLABORATOR_TTL_MS = 10000;
+const COLLABORATOR_SWEEP_MS = 3000;
+
+const CURSOR_COLORS = [
+  { background: "#fef3c7", stroke: "#d97706" },
+  { background: "#dbeafe", stroke: "#2563eb" },
+  { background: "#fce7f3", stroke: "#db2777" },
+  { background: "#d1fae5", stroke: "#059669" },
+  { background: "#ede9fe", stroke: "#7c3aed" },
+  { background: "#fee2e2", stroke: "#dc2626" },
+];
+
+const hashStr = (s: string): number => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
+
+const colorFor = (userId: string) =>
+  CURSOR_COLORS[hashStr(userId) % CURSOR_COLORS.length];
 
 const sigOf = (elements: readonly OrderedExcalidrawElement[]) =>
   elements.map((e) => `${e.id}:${e.version}`).join("|");
 
 export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
   const { socket, connected } = useWhiteboardSocket();
-  const [initialElements, setInitialElements] = useState<OrderedExcalidrawElement[] | null>(null);
+  const [initialElements, setInitialElements] = useState<
+    OrderedExcalidrawElement[] | null
+  >(null);
+
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const lastSyncedSigRef = useRef<string>("");
+
   const sendTimerRef = useRef<number | null>(null);
-  const pendingElementsRef = useRef<readonly OrderedExcalidrawElement[] | null>(null);
+  const pendingElementsRef = useRef<readonly OrderedExcalidrawElement[] | null>(
+    null,
+  );
+
+  const pointerTimerRef = useRef<number | null>(null);
+  const lastPointerSentRef = useRef<number>(0);
+  const pendingPointerRef = useRef<{
+    pointer: { x: number; y: number };
+    button: "up" | "down";
+  } | null>(null);
+
+  const collaboratorsRef = useRef<Map<string, CollaboratorEntry>>(new Map());
+
+  const pushCollaboratorsToScene = useCallback(() => {
+    if (!apiRef.current) return;
+    const map = new Map<SocketId, Collaborator>();
+    for (const [userId, entry] of collaboratorsRef.current) {
+      map.set(userId as SocketId, {
+        id: userId,
+        socketId: userId as SocketId,
+        pointer: { ...entry.pointer, tool: "pointer" },
+        button: entry.button,
+        username: entry.email.split("@")[0],
+        color: colorFor(userId),
+      });
+    }
+    apiRef.current.updateScene({
+      collaborators: map,
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+  }, []);
 
   useEffect(() => {
     if (!socket || !connected) return;
@@ -52,19 +127,58 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
       });
     };
 
+    const onRemotePointer = (payload: RemotePointerPayload) => {
+      collaboratorsRef.current.set(payload.userId, {
+        pointer: payload.pointer,
+        button: payload.button,
+        email: payload.email,
+        lastSeen: Date.now(),
+      });
+      pushCollaboratorsToScene();
+    };
+
+    const onCollaboratorLeft = (payload: CollaboratorLeftPayload) => {
+      if (collaboratorsRef.current.delete(payload.userId)) {
+        pushCollaboratorsToScene();
+      }
+    };
+
     socket.on("boardState", onBoardState);
     socket.on("sceneUpdate", onSceneUpdate);
+    socket.on("pointerUpdate", onRemotePointer);
+    socket.on("collaboratorLeft", onCollaboratorLeft);
 
     return () => {
       socket.off("boardState", onBoardState);
       socket.off("sceneUpdate", onSceneUpdate);
+      socket.off("pointerUpdate", onRemotePointer);
+      socket.off("collaboratorLeft", onCollaboratorLeft);
     };
-  }, [socket, connected, workspaceId]);
+  }, [socket, connected, workspaceId, pushCollaboratorsToScene]);
+
+  useEffect(() => {
+    const sweep = window.setInterval(() => {
+      const now = Date.now();
+      let changed = false;
+      for (const [userId, entry] of collaboratorsRef.current) {
+        if (now - entry.lastSeen > COLLABORATOR_TTL_MS) {
+          collaboratorsRef.current.delete(userId);
+          changed = true;
+        }
+      }
+      if (changed) pushCollaboratorsToScene();
+    }, COLLABORATOR_SWEEP_MS);
+
+    return () => window.clearInterval(sweep);
+  }, [pushCollaboratorsToScene]);
 
   useEffect(() => {
     return () => {
       if (sendTimerRef.current !== null) {
         window.clearTimeout(sendTimerRef.current);
+      }
+      if (pointerTimerRef.current !== null) {
+        window.clearTimeout(pointerTimerRef.current);
       }
     };
   }, []);
@@ -92,6 +206,44 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
     [flushSend],
   );
 
+  const flushPointer = useCallback(() => {
+    pointerTimerRef.current = null;
+    const data = pendingPointerRef.current;
+    pendingPointerRef.current = null;
+    if (!data || !socket || !connected) return;
+    socket.emit("pointerUpdate", {
+      workspaceId,
+      pointer: data.pointer,
+      button: data.button,
+    });
+    lastPointerSentRef.current = Date.now();
+  }, [socket, connected, workspaceId]);
+
+  const onPointerUpdate = useCallback(
+    (payload: {
+      pointer: { x: number; y: number; tool: "pointer" | "laser" };
+      button: "down" | "up";
+    }) => {
+      pendingPointerRef.current = {
+        pointer: { x: payload.pointer.x, y: payload.pointer.y },
+        button: payload.button,
+      };
+
+      const now = Date.now();
+      const elapsed = now - lastPointerSentRef.current;
+
+      if (elapsed >= POINTER_THROTTLE_MS) {
+        flushPointer();
+      } else if (pointerTimerRef.current === null) {
+        pointerTimerRef.current = window.setTimeout(
+          flushPointer,
+          POINTER_THROTTLE_MS - elapsed,
+        );
+      }
+    },
+    [flushPointer],
+  );
+
   if (initialElements === null) {
     return (
       <div className="flex-1 min-h-0 w-full flex items-center justify-center text-[13px] text-[#858c87] dark:text-[#6e7672]">
@@ -109,6 +261,8 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
           apiRef.current = api;
         }}
         onChange={onChange}
+        onPointerUpdate={onPointerUpdate}
+        isCollaborating
       />
     </div>
   );
