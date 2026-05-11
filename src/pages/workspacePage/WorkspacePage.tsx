@@ -112,7 +112,7 @@ export const WorkspacePage = () => {
             />
           )}
           {tab === "files" && <FilesTab />}
-          {tab === "whiteboard" && <WhiteboardTab />}
+          {tab === "whiteboard" && <WhiteboardTab workspaceId={id} />}
           {tab === "shared-links" && <SharedLinksTab />}
           {tab === "settings" && workspace && (
             <SettingsTab workspace={workspace} onUpdate={setWorkspace} />

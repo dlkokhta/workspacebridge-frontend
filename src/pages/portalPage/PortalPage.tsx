@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bell,
-  Download,
   ExternalLink,
   File,
   Filter,
@@ -25,6 +24,7 @@ import {
 import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { MessagesTab as RealMessagesTab } from "../workspacePage/tabs/MessagesTab";
+import { WhiteboardCanvas } from "../workspacePage/components/WhiteboardCanvas";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -159,44 +159,10 @@ const FilesTab = () => {
 
 // ─── Whiteboard tab ───────────────────────────────────────────────────────────
 
-const TOOLS = [
-  { id: "select", label: "Select", icon: "↖" },
-  { id: "pen", label: "Pen", icon: <Pencil size={15} /> },
-  { id: "text", label: "Text", icon: "T" },
-  { id: "sticky", label: "Sticky", icon: <File size={15} /> },
-  { id: "image", label: "Image", icon: <Image size={15} /> },
-];
-
-const StickyNote = ({ x, y, color, rotate, children }: { x: number; y: number; color: string; rotate: number; children: React.ReactNode }) => (
-  <div className="absolute p-3.5 text-white rounded-lg z-[2] shadow-md w-44" style={{ left: x, top: y, background: color, transform: `rotate(${rotate}deg)` }}>
-    {children}
-  </div>
-);
-
-const WhiteboardTab = () => {
-  const [tool, setTool] = useState("select");
-
+const WhiteboardTab = ({ workspaceId }: { workspaceId: string }) => {
   return (
     <div className="flex flex-col flex-1 overflow-hidden min-h-0">
-      <div className="flex items-center justify-between px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.05]">
-        <span className="text-[13px] font-medium text-[#1a201c] dark:text-[#e8ece9]">Shared board</span>
-        <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer">
-          <Download size={13} /> Export
-        </button>
-      </div>
-      <div className="flex-1 relative overflow-hidden bg-[#f3f3ee] dark:bg-[#0a0f0c]" style={{ backgroundImage: "radial-gradient(circle, rgba(90,138,107,0.25) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
-        <div className="absolute left-4 top-4 bg-white dark:bg-[#151a17] border border-black/[0.08] dark:border-white/[0.07] rounded-xl p-1 flex flex-col gap-0.5 z-10">
-          {TOOLS.map((t) => (
-            <button key={t.id} onClick={() => setTool(t.id)} title={t.label} className={`w-9 h-9 rounded-lg flex items-center justify-center text-[14px] font-medium transition-colors ${tool === t.id ? "bg-[#5a8a6b]/10 text-[#5a8a6b]" : "text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"} cursor-pointer`}>
-              {t.icon}
-            </button>
-          ))}
-        </div>
-        <StickyNote x={120} y={80} color="#5a8a6b" rotate={-2}>
-          <div className="text-[10px] opacity-80 mb-1.5 uppercase tracking-wide">Project notes</div>
-          <div className="text-[13px] font-semibold">Add your ideas here</div>
-        </StickyNote>
-      </div>
+      <WhiteboardCanvas workspaceId={workspaceId} />
     </div>
   );
 };
@@ -423,7 +389,7 @@ export const PortalPage = () => {
           />
         )}
         {tab === "files" && <FilesTab />}
-        {tab === "whiteboard" && <WhiteboardTab />}
+        {tab === "whiteboard" && workspace && <WhiteboardTab workspaceId={workspace.id} />}
         {tab === "shared-links" && <SharedLinksTab />}
       </div>
     </div>
