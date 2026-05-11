@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CaptureUpdateAction, Excalidraw } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import type {
+  BinaryFileData,
+  BinaryFiles,
   Collaborator,
   ExcalidrawImperativeAPI,
   SocketId,
@@ -15,10 +17,12 @@ interface WhiteboardCanvasProps {
 
 interface BoardStatePayload {
   elements: unknown[];
+  files?: BinaryFiles | null;
 }
 
 interface SceneUpdatePayload {
   elements: unknown[];
+  files?: BinaryFiles | null;
 }
 
 interface RemotePointerPayload {
@@ -70,14 +74,18 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
   const [initialElements, setInitialElements] = useState<
     OrderedExcalidrawElement[] | null
   >(null);
+  const [initialFiles, setInitialFiles] = useState<BinaryFiles>({});
 
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const lastSyncedSigRef = useRef<string>("");
+  const lastSentFileIdsRef = useRef<Set<string>>(new Set());
+  const knownRemoteFileIdsRef = useRef<Set<string>>(new Set());
 
   const sendTimerRef = useRef<number | null>(null);
   const pendingElementsRef = useRef<readonly OrderedExcalidrawElement[] | null>(
     null,
   );
+  const pendingFilesRef = useRef<BinaryFiles | null>(null);
 
   const pointerTimerRef = useRef<number | null>(null);
   const lastPointerSentRef = useRef<number>(0);
@@ -114,7 +122,11 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
 
     const onBoardState = (payload: BoardStatePayload) => {
       const elements = (payload.elements ?? []) as OrderedExcalidrawElement[];
+      const files = payload.files ?? {};
       lastSyncedSigRef.current = sigOf(elements);
+      knownRemoteFileIdsRef.current = new Set(Object.keys(files));
+      lastSentFileIdsRef.current = new Set(Object.keys(files));
+      setInitialFiles(files);
       setInitialElements(elements);
     };
 
@@ -125,6 +137,16 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
         elements,
         captureUpdate: CaptureUpdateAction.NEVER,
       });
+      if (payload.files) {
+        const incoming: BinaryFileData[] = [];
+        for (const [id, file] of Object.entries(payload.files)) {
+          if (!knownRemoteFileIdsRef.current.has(id)) {
+            incoming.push(file);
+            knownRemoteFileIdsRef.current.add(id);
+          }
+        }
+        if (incoming.length > 0) apiRef.current?.addFiles(incoming);
+      }
     };
 
     const onRemotePointer = (payload: RemotePointerPayload) => {
@@ -186,18 +208,43 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
   const flushSend = useCallback(() => {
     sendTimerRef.current = null;
     const elements = pendingElementsRef.current;
+    const files = pendingFilesRef.current;
     pendingElementsRef.current = null;
+    pendingFilesRef.current = null;
     if (!elements || !socket || !connected) return;
-    socket.emit("sceneUpdate", { workspaceId, elements });
+
+    const currentIds = files ? Object.keys(files) : [];
+    const lastIds = lastSentFileIdsRef.current;
+    const filesChanged =
+      currentIds.length !== lastIds.size ||
+      currentIds.some((id) => !lastIds.has(id));
+
+    const payload: {
+      workspaceId: string;
+      elements: readonly OrderedExcalidrawElement[];
+      files?: BinaryFiles;
+    } = { workspaceId, elements };
+
+    if (filesChanged && files) {
+      payload.files = files;
+      lastSentFileIdsRef.current = new Set(currentIds);
+    }
+
+    socket.emit("sceneUpdate", payload);
   }, [socket, connected, workspaceId]);
 
   const onChange = useCallback(
-    (elements: readonly OrderedExcalidrawElement[]) => {
+    (
+      elements: readonly OrderedExcalidrawElement[],
+      _appState: unknown,
+      files: BinaryFiles,
+    ) => {
       const sig = sigOf(elements);
       if (sig === lastSyncedSigRef.current) return;
       lastSyncedSigRef.current = sig;
 
       pendingElementsRef.current = elements;
+      pendingFilesRef.current = files;
       if (sendTimerRef.current !== null) {
         window.clearTimeout(sendTimerRef.current);
       }
@@ -256,7 +303,7 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
     <div className="flex-1 min-h-0 w-full">
       <Excalidraw
         key={workspaceId}
-        initialData={{ elements: initialElements }}
+        initialData={{ elements: initialElements, files: initialFiles }}
         excalidrawAPI={(api) => {
           apiRef.current = api;
         }}
