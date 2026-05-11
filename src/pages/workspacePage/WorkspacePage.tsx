@@ -104,7 +104,13 @@ export const WorkspacePage = () => {
         />
 
         <div className="flex flex-col flex-1 overflow-hidden min-h-0">
-          {tab === "messages" && <MessagesTab initials={initials} />}
+          {tab === "messages" && (
+            <MessagesTab
+              workspaceId={id}
+              userId={profile?.id ?? ""}
+              initials={initials}
+            />
+          )}
           {tab === "files" && <FilesTab />}
           {tab === "whiteboard" && <WhiteboardTab />}
           {tab === "shared-links" && <SharedLinksTab />}

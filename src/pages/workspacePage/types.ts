@@ -1,6 +1,7 @@
 export type Tab = "messages" | "files" | "whiteboard" | "shared-links" | "settings";
 
 export interface UserProfile {
+  id: string;
   firstname: string | null;
   lastname: string | null;
   email: string;
@@ -33,14 +34,16 @@ export interface WorkspaceDetail extends Workspace {
 }
 
 export interface Message {
-  id: number;
-  side: "me" | "them";
-  name: string;
-  mark: string;
-  color: string;
-  time?: string;
-  content?: string;
-  attachment?: { name: string; meta: string };
+  id: string;
+  content: string;
+  createdAt: string;
+  sender: {
+    id: string;
+    firstname: string | null;
+    lastname: string | null;
+    email: string;
+    picture: string | null;
+  };
 }
 
 export interface FileItem {
