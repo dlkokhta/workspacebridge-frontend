@@ -40,19 +40,18 @@ export const MessagesTab = ({ workspaceId, userId, initials }: MessagesTabProps)
   useEffect(() => {
     if (!socket || !connected) return;
 
-    socket.emit("joinRoom", workspaceId);
+    socket.emit("joinRoom", { workspaceId });
 
-    socket.on("messageHistory", (history: Message[]) => {
-      setMessages(history);
-    });
-
-    socket.on("newMessage", (message: Message) => {
+    const onHistory = (history: Message[]) => setMessages(history);
+    const onNewMessage = (message: Message) =>
       setMessages((prev) => [...prev, message]);
-    });
+
+    socket.on("messageHistory", onHistory);
+    socket.on("newMessage", onNewMessage);
 
     return () => {
-      socket.off("messageHistory");
-      socket.off("newMessage");
+      socket.off("messageHistory", onHistory);
+      socket.off("newMessage", onNewMessage);
     };
   }, [socket, connected, workspaceId]);
 
