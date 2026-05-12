@@ -115,6 +115,8 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
   } | null>(null);
 
   const collaboratorsRef = useRef<Map<string, CollaboratorEntry>>(new Map());
+  const hasJoinedRef = useRef<boolean>(false);
+  const flushSendRef = useRef<() => void>(() => {});
 
   const pushCollaboratorsToScene = useCallback(() => {
     if (!apiRef.current) return;
@@ -143,11 +145,38 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
     const onBoardState = (payload: BoardStatePayload) => {
       const elements = (payload.elements ?? []) as OrderedExcalidrawElement[];
       const files = payload.files ?? {};
-      lastSyncedSigRef.current = sigOf(elements);
-      knownRemoteFileIdsRef.current = new Set(Object.keys(files));
-      lastSentFileIdsRef.current = new Set(Object.keys(files));
-      setInitialFiles(files);
-      setInitialElements(elements);
+
+      if (!hasJoinedRef.current) {
+        lastSyncedSigRef.current = sigOf(elements);
+        knownRemoteFileIdsRef.current = new Set(Object.keys(files));
+        lastSentFileIdsRef.current = new Set(Object.keys(files));
+        setInitialFiles(files);
+        setInitialElements(elements);
+        hasJoinedRef.current = true;
+        return;
+      }
+
+      const api = apiRef.current;
+      if (!api) return;
+      const localElements = api.getSceneElementsIncludingDeleted();
+      const reconciled = reconcileElements(
+        localElements,
+        elements as RemoteExcalidrawElement[],
+        api.getAppState(),
+      );
+      lastSyncedSigRef.current = sigOf(reconciled);
+      api.updateScene({
+        elements: reconciled,
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+      const incomingFiles: BinaryFileData[] = [];
+      for (const [id, file] of Object.entries(files)) {
+        if (!knownRemoteFileIdsRef.current.has(id)) {
+          incomingFiles.push(file);
+          knownRemoteFileIdsRef.current.add(id);
+        }
+      }
+      if (incomingFiles.length > 0) api.addFiles(incomingFiles);
     };
 
     const onSceneUpdate = (payload: SceneUpdatePayload) => {
@@ -202,11 +231,17 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
     socket.on("pointerUpdate", onRemotePointer);
     socket.on("collaboratorLeft", onCollaboratorLeft);
 
+    let flushTimer: number | null = null;
+    if (pendingElementsRef.current !== null) {
+      flushTimer = window.setTimeout(() => flushSendRef.current(), 100);
+    }
+
     return () => {
       socket.off("boardState", onBoardState);
       socket.off("sceneUpdate", onSceneUpdate);
       socket.off("pointerUpdate", onRemotePointer);
       socket.off("collaboratorLeft", onCollaboratorLeft);
+      if (flushTimer !== null) window.clearTimeout(flushTimer);
     };
   }, [socket, connected, workspaceId, pushCollaboratorsToScene]);
 
@@ -239,11 +274,13 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
 
   const flushSend = useCallback(() => {
     sendTimerRef.current = null;
+    if (!socket || !connected) return;
+
     const elements = pendingElementsRef.current;
+    if (!elements) return;
     const files = pendingFilesRef.current;
     pendingElementsRef.current = null;
     pendingFilesRef.current = null;
-    if (!elements || !socket || !connected) return;
 
     const currentIds = files ? Object.keys(files) : [];
     const lastIds = lastSentFileIdsRef.current;
@@ -264,6 +301,10 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
 
     socket.emit("sceneUpdate", payload);
   }, [socket, connected, workspaceId]);
+
+  useEffect(() => {
+    flushSendRef.current = flushSend;
+  }, [flushSend]);
 
   const onChange = useCallback(
     (
