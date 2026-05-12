@@ -34,6 +34,8 @@ interface SceneUpdatePayload {
 interface RemotePointerPayload {
   userId: string;
   email: string;
+  firstname?: string | null;
+  lastname?: string | null;
   pointer: { x: number; y: number };
   button?: "up" | "down";
 }
@@ -46,6 +48,8 @@ interface CollaboratorEntry {
   pointer: { x: number; y: number };
   button?: "up" | "down";
   email: string;
+  firstname?: string | null;
+  lastname?: string | null;
   lastSeen: number;
 }
 
@@ -74,6 +78,15 @@ const colorFor = (userId: string) =>
 
 const sigOf = (elements: readonly OrderedExcalidrawElement[]) =>
   elements.map((e) => `${e.id}:${e.version}`).join("|");
+
+const displayNameFor = (entry: CollaboratorEntry) => {
+  const first = entry.firstname?.trim();
+  const last = entry.lastname?.trim();
+  if (first && last) return `${first} ${last[0]}.`;
+  if (first) return first;
+  if (last) return last;
+  return entry.email.split("@")[0];
+};
 
 export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
   const { socket, connected } = useWhiteboardSocket();
@@ -112,7 +125,7 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
         socketId: userId as SocketId,
         pointer: { ...entry.pointer, tool: "pointer" },
         button: entry.button,
-        username: entry.email.split("@")[0],
+        username: displayNameFor(entry),
         color: colorFor(userId),
       });
     }
@@ -171,6 +184,8 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
         pointer: payload.pointer,
         button: payload.button,
         email: payload.email,
+        firstname: payload.firstname,
+        lastname: payload.lastname,
         lastSeen: Date.now(),
       });
       pushCollaboratorsToScene();
