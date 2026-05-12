@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CaptureUpdateAction, Excalidraw } from "@excalidraw/excalidraw";
+import {
+  CaptureUpdateAction,
+  Excalidraw,
+  reconcileElements,
+} from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import type {
   BinaryFileData,
@@ -9,6 +13,7 @@ import type {
   SocketId,
 } from "@excalidraw/excalidraw/types";
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
+import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 import { useWhiteboardSocket } from "../../../hooks/useWhiteboardSocket";
 
 interface WhiteboardCanvasProps {
@@ -131,12 +136,22 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
     };
 
     const onSceneUpdate = (payload: SceneUpdatePayload) => {
-      const elements = (payload.elements ?? []) as OrderedExcalidrawElement[];
-      lastSyncedSigRef.current = sigOf(elements);
-      apiRef.current?.updateScene({
-        elements,
-        captureUpdate: CaptureUpdateAction.NEVER,
-      });
+      const remoteElements = (payload.elements ?? []) as RemoteExcalidrawElement[];
+      lastSyncedSigRef.current = sigOf(remoteElements);
+
+      const api = apiRef.current;
+      if (api) {
+        const localElements = api.getSceneElementsIncludingDeleted();
+        const reconciled = reconcileElements(
+          localElements,
+          remoteElements,
+          api.getAppState(),
+        );
+        api.updateScene({
+          elements: reconciled,
+          captureUpdate: CaptureUpdateAction.NEVER,
+        });
+      }
       if (payload.files) {
         const incoming: BinaryFileData[] = [];
         for (const [id, file] of Object.entries(payload.files)) {
