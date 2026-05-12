@@ -18,7 +18,7 @@ import { useWhiteboardSocket } from "../../../hooks/useWhiteboardSocket";
 import { useTheme } from "../../../context/ThemeContext";
 
 interface WhiteboardCanvasProps {
-  workspaceId: string;
+  boardId: string;
 }
 
 interface BoardStatePayload {
@@ -88,7 +88,7 @@ const displayNameFor = (entry: CollaboratorEntry) => {
   return entry.email.split("@")[0];
 };
 
-export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
+export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
   const { socket, connected } = useWhiteboardSocket();
   const { theme } = useTheme();
   const [initialElements, setInitialElements] = useState<
@@ -140,7 +140,7 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
   useEffect(() => {
     if (!socket || !connected) return;
 
-    socket.emit("joinBoard", { workspaceId });
+    socket.emit("joinBoard", { boardId });
 
     const onBoardState = (payload: BoardStatePayload) => {
       const elements = (payload.elements ?? []) as OrderedExcalidrawElement[];
@@ -243,7 +243,7 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
       socket.off("collaboratorLeft", onCollaboratorLeft);
       if (flushTimer !== null) window.clearTimeout(flushTimer);
     };
-  }, [socket, connected, workspaceId, pushCollaboratorsToScene]);
+  }, [socket, connected, boardId, pushCollaboratorsToScene]);
 
   useEffect(() => {
     const sweep = window.setInterval(() => {
@@ -289,10 +289,10 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
       currentIds.some((id) => !lastIds.has(id));
 
     const payload: {
-      workspaceId: string;
+      boardId: string;
       elements: readonly OrderedExcalidrawElement[];
       files?: BinaryFiles;
-    } = { workspaceId, elements };
+    } = { boardId, elements };
 
     if (filesChanged && files) {
       payload.files = files;
@@ -300,7 +300,7 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
     }
 
     socket.emit("sceneUpdate", payload);
-  }, [socket, connected, workspaceId]);
+  }, [socket, connected, boardId]);
 
   useEffect(() => {
     flushSendRef.current = flushSend;
@@ -332,12 +332,12 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
     pendingPointerRef.current = null;
     if (!data || !socket || !connected) return;
     socket.emit("pointerUpdate", {
-      workspaceId,
+      boardId,
       pointer: data.pointer,
       button: data.button,
     });
     lastPointerSentRef.current = Date.now();
-  }, [socket, connected, workspaceId]);
+  }, [socket, connected, boardId]);
 
   const onPointerUpdate = useCallback(
     (payload: {
@@ -375,7 +375,7 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
   return (
     <div className="flex-1 min-h-0 w-full">
       <Excalidraw
-        key={workspaceId}
+        key={boardId}
         theme={theme}
         initialData={{ elements: initialElements, files: initialFiles }}
         excalidrawAPI={(api) => {
