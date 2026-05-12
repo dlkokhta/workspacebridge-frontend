@@ -95,6 +95,7 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
     OrderedExcalidrawElement[] | null
   >(null);
   const [initialFiles, setInitialFiles] = useState<BinaryFiles>({});
+  const [dirty, setDirty] = useState(false);
 
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const lastSyncedSigRef = useRef<string>("");
@@ -300,6 +301,7 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
     }
 
     socket.emit("sceneUpdate", payload);
+    setDirty(false);
   }, [socket, connected, boardId]);
 
   useEffect(() => {
@@ -318,6 +320,7 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
 
       pendingElementsRef.current = elements;
       pendingFilesRef.current = files;
+      setDirty(true);
       if (sendTimerRef.current !== null) {
         window.clearTimeout(sendTimerRef.current);
       }
@@ -372,8 +375,27 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
     );
   }
 
+  const status: "offline" | "saving" | "saved" = !connected
+    ? "offline"
+    : dirty
+      ? "saving"
+      : "saved";
+
+  const statusLabel =
+    status === "offline" ? "Offline" : status === "saving" ? "Saving…" : "Saved";
+  const statusDot =
+    status === "offline"
+      ? "bg-[#858c87]"
+      : status === "saving"
+        ? "bg-[#d97706]"
+        : "bg-[#5a8a6b]";
+
   return (
-    <div className="flex-1 min-h-0 w-full">
+    <div className="flex-1 min-h-0 w-full relative">
+      <div className="absolute top-2.5 right-2.5 z-10 inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-white/95 dark:bg-[#151a17]/95 border border-black/[0.08] dark:border-white/[0.07] backdrop-blur text-[11px] text-[#5a625e] dark:text-[#a0a8a3] shadow-sm pointer-events-none">
+        <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />
+        {statusLabel}
+      </div>
       <Excalidraw
         key={boardId}
         theme={theme}
