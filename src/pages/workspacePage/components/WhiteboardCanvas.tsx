@@ -15,6 +15,7 @@ import type {
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 import { useWhiteboardSocket } from "../../../hooks/useWhiteboardSocket";
+import { useTheme } from "../../../context/ThemeContext";
 
 interface WhiteboardCanvasProps {
   workspaceId: string;
@@ -76,6 +77,7 @@ const sigOf = (elements: readonly OrderedExcalidrawElement[]) =>
 
 export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
   const { socket, connected } = useWhiteboardSocket();
+  const { theme } = useTheme();
   const [initialElements, setInitialElements] = useState<
     OrderedExcalidrawElement[] | null
   >(null);
@@ -318,6 +320,7 @@ export const WhiteboardCanvas = ({ workspaceId }: WhiteboardCanvasProps) => {
     <div className="flex-1 min-h-0 w-full">
       <Excalidraw
         key={workspaceId}
+        theme={theme}
         initialData={{ elements: initialElements, files: initialFiles }}
         excalidrawAPI={(api) => {
           apiRef.current = api;
