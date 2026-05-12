@@ -8,7 +8,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { createPortal } from "react-dom";
-import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { Copy, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { axiosInstance } from "../../../context/AuthContext";
 
 const WhiteboardCanvas = lazy(() =>
@@ -182,6 +182,20 @@ export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
     }
   };
 
+  const handleDuplicate = async (board: BoardSummary) => {
+    setMenuOpenId(null);
+    setMenuPos(null);
+    try {
+      const { data } = await axiosInstance.post<BoardSummary>(
+        `/whiteboards/${board.id}/duplicate`,
+      );
+      setBoards((prev) => (prev ? [...prev, data] : [data]));
+      setSelectedId(data.id);
+    } catch {
+      setError("Could not duplicate board.");
+    }
+  };
+
   const handleDelete = async (board: BoardSummary) => {
     setMenuOpenId(null);
     setMenuPos(null);
@@ -304,6 +318,12 @@ export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
                     className="w-full px-3 py-1.5 inline-flex items-center gap-2 text-left text-[#1a201c] dark:text-[#fafaf7] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
                   >
                     <Pencil size={12} /> Rename
+                  </button>
+                  <button
+                    onClick={() => void handleDuplicate(board)}
+                    className="w-full px-3 py-1.5 inline-flex items-center gap-2 text-left text-[#1a201c] dark:text-[#fafaf7] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
+                  >
+                    <Copy size={12} /> Duplicate
                   </button>
                   <button
                     onClick={() => void handleDelete(board)}
