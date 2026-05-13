@@ -27,6 +27,8 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
 | Routing | React Router v7 |
 | Forms | React Hook Form + Yup |
 | HTTP | Axios with auto-refresh interceptor |
+| Realtime | Socket.IO client (chat, whiteboard sync, presence) |
+| Whiteboard | Excalidraw |
 | Icons | Lucide React |
 | Testing | Vitest + Testing Library |
 
@@ -51,9 +53,9 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
 - **Dashboard** — workspace cards grid with status badges, stats bar (total/active/completed), empty state, new workspace card
 - **Onboarding** — 3-step flow: create workspace (name, description, color) → invite client (email or shareable link) → success
 - **Workspace page** — full app shell with workspace sidebar, 4 tabs:
-  - Messages — chat thread with file attachment support
+  - Messages — realtime chat thread (Socket.IO) with file attachment support
   - Files — grid / list view with upload
-  - Whiteboard — collaborative canvas mock with sticky notes and tools
+  - Whiteboard — Excalidraw-based collaborative canvas with multi-board support, live remote cursors, save status badge, 15 starter templates, comments pinned to shapes, and version history with one-click restore
   - Shared Links — add/remove URLs shared with the client
 - **Profile / Settings** — edit name, change password, enable/disable 2FA, notification preferences (UI), billing preview
 - **Admin panel** — list users, change role, delete user, pagination
@@ -100,6 +102,7 @@ src/
 ├── components/       # Shared components (ProtectedRoute)
 ├── constants/        # Route constants
 ├── context/          # AuthContext (JWT + Axios), ThemeContext (light/dark)
+├── hooks/            # useSocket, useWhiteboardSocket, useWhiteboardComments, useWhiteboardVersions
 ├── pages/
 │   ├── homePage/             # Landing page
 │   ├── loginPage/            # Sign in
