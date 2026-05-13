@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { MessageSquare, MessageSquarePlus, Trash2, X } from "lucide-react";
+import type { Socket } from "socket.io-client";
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import {
   useWhiteboardComments,
@@ -14,6 +15,7 @@ import {
 
 interface WhiteboardCommentLayerProps {
   boardId: string;
+  socket: Socket | null;
   currentUserId: string | null;
   elements: readonly OrderedExcalidrawElement[];
   scrollX: number;
@@ -250,6 +252,7 @@ const CommentPopover = ({
 
 export const WhiteboardCommentLayer = ({
   boardId,
+  socket,
   currentUserId,
   elements,
   scrollX,
@@ -261,7 +264,7 @@ export const WhiteboardCommentLayer = ({
     commentsByElement,
     addComment,
     deleteComment,
-  } = useWhiteboardComments(boardId);
+  } = useWhiteboardComments(boardId, socket);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });

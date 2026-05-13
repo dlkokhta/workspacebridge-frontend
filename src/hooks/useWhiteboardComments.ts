@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Socket } from "socket.io-client";
 import { axiosInstance } from "../context/AuthContext";
 
 export interface CommentAuthor {
@@ -20,6 +21,11 @@ export interface WhiteboardComment {
   author: CommentAuthor;
 }
 
+interface CommentDeletedPayload {
+  id: string;
+  boardId: string;
+}
+
 interface UseWhiteboardCommentsResult {
   comments: WhiteboardComment[];
   commentsByElement: Map<string, WhiteboardComment[]>;
@@ -27,12 +33,11 @@ interface UseWhiteboardCommentsResult {
   error: string | null;
   addComment: (elementId: string, body: string) => Promise<WhiteboardComment>;
   deleteComment: (commentId: string) => Promise<void>;
-  applyRemoteCreated: (comment: WhiteboardComment) => void;
-  applyRemoteDeleted: (commentId: string) => void;
 }
 
 export const useWhiteboardComments = (
   boardId: string,
+  socket: Socket | null,
 ): UseWhiteboardCommentsResult => {
   const [comments, setComments] = useState<WhiteboardComment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,15 +94,25 @@ export const useWhiteboardComments = (
     [boardId],
   );
 
-  const applyRemoteCreated = useCallback((comment: WhiteboardComment) => {
-    setComments((prev) =>
-      prev.some((c) => c.id === comment.id) ? prev : [...prev, comment],
-    );
-  }, []);
-
-  const applyRemoteDeleted = useCallback((commentId: string) => {
-    setComments((prev) => prev.filter((c) => c.id !== commentId));
-  }, []);
+  useEffect(() => {
+    if (!socket) return;
+    const onCreated = (comment: WhiteboardComment) => {
+      if (comment.whiteboardId !== boardId) return;
+      setComments((prev) =>
+        prev.some((c) => c.id === comment.id) ? prev : [...prev, comment],
+      );
+    };
+    const onDeleted = (payload: CommentDeletedPayload) => {
+      if (payload.boardId !== boardId) return;
+      setComments((prev) => prev.filter((c) => c.id !== payload.id));
+    };
+    socket.on("commentCreated", onCreated);
+    socket.on("commentDeleted", onDeleted);
+    return () => {
+      socket.off("commentCreated", onCreated);
+      socket.off("commentDeleted", onDeleted);
+    };
+  }, [socket, boardId]);
 
   const commentsByElement = useMemo(() => {
     const map = new Map<string, WhiteboardComment[]>();
@@ -119,7 +134,5 @@ export const useWhiteboardComments = (
     error,
     addComment,
     deleteComment,
-    applyRemoteCreated,
-    applyRemoteDeleted,
   };
 };

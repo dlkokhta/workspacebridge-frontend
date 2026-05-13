@@ -490,6 +490,7 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
       />
       <WhiteboardCommentLayer
         boardId={boardId}
+        socket={socket}
         currentUserId={currentUserId}
         elements={overlay.elements}
         scrollX={overlay.scrollX}
