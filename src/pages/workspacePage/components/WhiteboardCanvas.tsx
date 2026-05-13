@@ -119,6 +119,23 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
   const hasJoinedRef = useRef<boolean>(false);
   const flushSendRef = useRef<() => void>(() => {});
 
+  useEffect(() => {
+    setInitialElements(null);
+    setInitialFiles({});
+    setDirty(false);
+    hasJoinedRef.current = false;
+    apiRef.current = null;
+    lastSyncedSigRef.current = "";
+    lastSentFileIdsRef.current = new Set();
+    knownRemoteFileIdsRef.current = new Set();
+    pendingElementsRef.current = null;
+    pendingFilesRef.current = null;
+    if (sendTimerRef.current !== null) {
+      window.clearTimeout(sendTimerRef.current);
+      sendTimerRef.current = null;
+    }
+  }, [boardId]);
+
   const pushCollaboratorsToScene = useCallback(() => {
     if (!apiRef.current) return;
     const map = new Map<SocketId, Collaborator>();
