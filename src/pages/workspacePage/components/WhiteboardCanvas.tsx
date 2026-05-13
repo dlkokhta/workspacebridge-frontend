@@ -15,10 +15,14 @@ import type {
 } from "@excalidraw/excalidraw/types";
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
+import { History, Save } from "lucide-react";
 import { useWhiteboardSocket } from "../../../hooks/useWhiteboardSocket";
+import { useWhiteboardVersions } from "../../../hooks/useWhiteboardVersions";
 import { useTheme } from "../../../context/ThemeContext";
 import { useAuth } from "../../../context/AuthContext";
 import { WhiteboardCommentLayer } from "./WhiteboardCommentLayer";
+import { WhiteboardSaveVersionDialog } from "./WhiteboardSaveVersionDialog";
+import { WhiteboardVersionHistoryModal } from "./WhiteboardVersionHistoryModal";
 
 interface WhiteboardCanvasProps {
   boardId: string;
@@ -27,6 +31,13 @@ interface WhiteboardCanvasProps {
 interface BoardStatePayload {
   elements: unknown[];
   files?: BinaryFiles | null;
+}
+
+interface BoardRestoredPayload {
+  boardId: string;
+  elements: unknown;
+  appState: unknown;
+  files: unknown;
 }
 
 interface SceneUpdatePayload {
@@ -137,6 +148,10 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
   const [initialFiles, setInitialFiles] = useState<BinaryFiles>({});
   const [dirty, setDirty] = useState(false);
   const [overlay, setOverlay] = useState<OverlayState>(EMPTY_OVERLAY);
+  const [restoreEpoch, setRestoreEpoch] = useState(0);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const { saveVersion } = useWhiteboardVersions(boardId);
 
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const lastSyncedSigRef = useRef<string>("");
@@ -165,6 +180,9 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
     setInitialFiles({});
     setDirty(false);
     setOverlay(EMPTY_OVERLAY);
+    setRestoreEpoch(0);
+    setSaveDialogOpen(false);
+    setHistoryOpen(false);
     hasJoinedRef.current = false;
     apiRef.current = null;
     lastSyncedSigRef.current = "";
@@ -286,10 +304,33 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
       }
     };
 
+    const onBoardRestored = (payload: BoardRestoredPayload) => {
+      if (payload.boardId !== boardId) return;
+      const elements = (Array.isArray(payload.elements)
+        ? payload.elements
+        : []) as OrderedExcalidrawElement[];
+      const files = (payload.files ?? {}) as BinaryFiles;
+      lastSyncedSigRef.current = sigOf(elements);
+      knownRemoteFileIdsRef.current = new Set(Object.keys(files));
+      lastSentFileIdsRef.current = new Set(Object.keys(files));
+      pendingElementsRef.current = null;
+      pendingFilesRef.current = null;
+      if (sendTimerRef.current !== null) {
+        window.clearTimeout(sendTimerRef.current);
+        sendTimerRef.current = null;
+      }
+      setInitialElements(elements);
+      setInitialFiles(files);
+      hasJoinedRef.current = true;
+      setDirty(false);
+      setRestoreEpoch((prev) => prev + 1);
+    };
+
     socket.on("boardState", onBoardState);
     socket.on("sceneUpdate", onSceneUpdate);
     socket.on("pointerUpdate", onRemotePointer);
     socket.on("collaboratorLeft", onCollaboratorLeft);
+    socket.on("boardRestored", onBoardRestored);
 
     let flushTimer: number | null = null;
     if (pendingElementsRef.current !== null) {
@@ -301,6 +342,7 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
       socket.off("sceneUpdate", onSceneUpdate);
       socket.off("pointerUpdate", onRemotePointer);
       socket.off("collaboratorLeft", onCollaboratorLeft);
+      socket.off("boardRestored", onBoardRestored);
       if (flushTimer !== null) window.clearTimeout(flushTimer);
     };
   }, [socket, connected, boardId, pushCollaboratorsToScene]);
@@ -448,6 +490,24 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
     [flushPointer],
   );
 
+  const handleSaveVersion = useCallback(
+    async (label: string) => {
+      const api = apiRef.current;
+      const elements = api
+        ? (api.getSceneElementsIncludingDeleted() as readonly OrderedExcalidrawElement[])
+        : initialElements ?? [];
+      const files = api ? api.getFiles() : initialFiles;
+      const appState = api ? (api.getAppState() as unknown as Record<string, unknown>) : undefined;
+      await saveVersion({
+        label: label || undefined,
+        elements: [...elements],
+        appState,
+        files: files as unknown as Record<string, unknown>,
+      });
+    },
+    [saveVersion, initialElements, initialFiles],
+  );
+
   if (initialElements === null) {
     return (
       <div className="flex-1 min-h-0 w-full flex items-center justify-center text-[13px] text-[#858c87] dark:text-[#6e7672]">
@@ -473,12 +533,26 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
 
   return (
     <div className="flex-1 min-h-0 w-full relative">
-      <div className="absolute top-2.5 right-2.5 z-10 inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-white/95 dark:bg-[#151a17]/95 border border-black/[0.08] dark:border-white/[0.07] backdrop-blur text-[11px] text-[#5a625e] dark:text-[#a0a8a3] shadow-sm pointer-events-none">
-        <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />
-        {statusLabel}
+      <div className="absolute top-2.5 right-2.5 z-10 inline-flex items-center gap-2">
+        <button
+          onClick={() => setSaveDialogOpen(true)}
+          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full bg-white/95 dark:bg-[#151a17]/95 border border-black/[0.08] dark:border-white/[0.07] backdrop-blur text-[11px] font-medium text-[#5a625e] dark:text-[#a0a8a3] shadow-sm hover:bg-white dark:hover:bg-[#151a17] cursor-pointer"
+        >
+          <Save size={12} /> Save version
+        </button>
+        <button
+          onClick={() => setHistoryOpen(true)}
+          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full bg-white/95 dark:bg-[#151a17]/95 border border-black/[0.08] dark:border-white/[0.07] backdrop-blur text-[11px] font-medium text-[#5a625e] dark:text-[#a0a8a3] shadow-sm hover:bg-white dark:hover:bg-[#151a17] cursor-pointer"
+        >
+          <History size={12} /> History
+        </button>
+        <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-white/95 dark:bg-[#151a17]/95 border border-black/[0.08] dark:border-white/[0.07] backdrop-blur text-[11px] text-[#5a625e] dark:text-[#a0a8a3] shadow-sm pointer-events-none">
+          <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />
+          {statusLabel}
+        </span>
       </div>
       <Excalidraw
-        key={boardId}
+        key={`${boardId}-${restoreEpoch}`}
         theme={theme}
         initialData={{ elements: initialElements, files: initialFiles }}
         excalidrawAPI={(api) => {
@@ -497,6 +571,19 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
         scrollY={overlay.scrollY}
         zoom={overlay.zoom}
         selectedElementId={overlay.selectedElementId}
+      />
+      <WhiteboardSaveVersionDialog
+        isOpen={saveDialogOpen}
+        onClose={() => setSaveDialogOpen(false)}
+        onSave={handleSaveVersion}
+      />
+      <WhiteboardVersionHistoryModal
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        boardId={boardId}
+        onRestored={() => {
+          setHistoryOpen(false);
+        }}
       />
     </div>
   );
