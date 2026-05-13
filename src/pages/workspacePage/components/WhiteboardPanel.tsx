@@ -10,6 +10,8 @@ import {
 import { createPortal } from "react-dom";
 import { Copy, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { axiosInstance } from "../../../context/AuthContext";
+import { TemplatePickerModal } from "./TemplatePickerModal";
+import type { WhiteboardTemplate } from "./whiteboardTemplates";
 
 const WhiteboardCanvas = lazy(() =>
   import("./WhiteboardCanvas").then((m) => ({ default: m.WhiteboardCanvas })),
@@ -30,6 +32,7 @@ export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(
     null,
@@ -118,17 +121,26 @@ export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
     };
   }, [workspaceId]);
 
-  const handleNewBoard = async () => {
-    const name = window.prompt("Board name", "Untitled board");
-    if (name === null) return;
+  const handleNewBoard = () => {
+    setTemplatePickerOpen(true);
+  };
+
+  const handleCreateFromTemplate = async (
+    template: WhiteboardTemplate,
+    name: string,
+  ) => {
     setCreating(true);
     try {
       const { data } = await axiosInstance.post<BoardSummary>(
         `/workspace/${workspaceId}/whiteboards`,
-        { name: name.trim() || "Untitled board" },
+        {
+          name,
+          elements: template.elements,
+        },
       );
       setBoards((prev) => (prev ? [...prev, data] : [data]));
       setSelectedId(data.id);
+      setTemplatePickerOpen(false);
     } catch {
       setError("Could not create board.");
     } finally {
@@ -346,6 +358,14 @@ export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
       >
         <WhiteboardCanvas boardId={selectedId} />
       </Suspense>
+      <TemplatePickerModal
+        isOpen={templatePickerOpen}
+        onClose={() => {
+          if (!creating) setTemplatePickerOpen(false);
+        }}
+        onCreate={handleCreateFromTemplate}
+        creating={creating}
+      />
     </div>
   );
 };
