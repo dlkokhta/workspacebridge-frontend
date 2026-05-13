@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CaptureUpdateAction,
   Excalidraw,
@@ -6,6 +6,7 @@ import {
 } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import type {
+  AppState,
   BinaryFileData,
   BinaryFiles,
   Collaborator,
@@ -16,6 +17,8 @@ import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/ty
 import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 import { useWhiteboardSocket } from "../../../hooks/useWhiteboardSocket";
 import { useTheme } from "../../../context/ThemeContext";
+import { useAuth } from "../../../context/AuthContext";
+import { WhiteboardCommentLayer } from "./WhiteboardCommentLayer";
 
 interface WhiteboardCanvasProps {
   boardId: string;
@@ -79,6 +82,38 @@ const colorFor = (userId: string) =>
 const sigOf = (elements: readonly OrderedExcalidrawElement[]) =>
   elements.map((e) => `${e.id}:${e.version}`).join("|");
 
+const decodeUserIdFromToken = (token: string | null): string | null => {
+  if (!token) return null;
+  try {
+    const [, payloadB64] = token.split(".");
+    if (!payloadB64) return null;
+    const payload: unknown = JSON.parse(atob(payloadB64));
+    if (typeof payload === "object" && payload !== null) {
+      const userId = (payload as { userId?: unknown }).userId;
+      return typeof userId === "string" ? userId : null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+interface OverlayState {
+  elements: readonly OrderedExcalidrawElement[];
+  scrollX: number;
+  scrollY: number;
+  zoom: number;
+  selectedElementId: string | null;
+}
+
+const EMPTY_OVERLAY: OverlayState = {
+  elements: [],
+  scrollX: 0,
+  scrollY: 0,
+  zoom: 1,
+  selectedElementId: null,
+};
+
 const displayNameFor = (entry: CollaboratorEntry) => {
   const first = entry.firstname?.trim();
   const last = entry.lastname?.trim();
@@ -91,11 +126,17 @@ const displayNameFor = (entry: CollaboratorEntry) => {
 export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
   const { socket, connected } = useWhiteboardSocket();
   const { theme } = useTheme();
+  const { accessToken } = useAuth();
+  const currentUserId = useMemo(
+    () => decodeUserIdFromToken(accessToken),
+    [accessToken],
+  );
   const [initialElements, setInitialElements] = useState<
     OrderedExcalidrawElement[] | null
   >(null);
   const [initialFiles, setInitialFiles] = useState<BinaryFiles>({});
   const [dirty, setDirty] = useState(false);
+  const [overlay, setOverlay] = useState<OverlayState>(EMPTY_OVERLAY);
 
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const lastSyncedSigRef = useRef<string>("");
@@ -123,6 +164,7 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
     setInitialElements(null);
     setInitialFiles({});
     setDirty(false);
+    setOverlay(EMPTY_OVERLAY);
     hasJoinedRef.current = false;
     apiRef.current = null;
     lastSyncedSigRef.current = "";
@@ -328,9 +370,31 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
   const onChange = useCallback(
     (
       elements: readonly OrderedExcalidrawElement[],
-      _appState: unknown,
+      appState: AppState,
       files: BinaryFiles,
     ) => {
+      const selectedIds = Object.keys(appState.selectedElementIds);
+      const nextSelectedId = selectedIds.length === 1 ? selectedIds[0] : null;
+
+      setOverlay((prev) => {
+        if (
+          prev.elements === elements &&
+          prev.scrollX === appState.scrollX &&
+          prev.scrollY === appState.scrollY &&
+          prev.zoom === appState.zoom.value &&
+          prev.selectedElementId === nextSelectedId
+        ) {
+          return prev;
+        }
+        return {
+          elements,
+          scrollX: appState.scrollX,
+          scrollY: appState.scrollY,
+          zoom: appState.zoom.value,
+          selectedElementId: nextSelectedId,
+        };
+      });
+
       const sig = sigOf(elements);
       if (sig === lastSyncedSigRef.current) return;
       lastSyncedSigRef.current = sig;
@@ -423,6 +487,15 @@ export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
         onChange={onChange}
         onPointerUpdate={onPointerUpdate}
         isCollaborating
+      />
+      <WhiteboardCommentLayer
+        boardId={boardId}
+        currentUserId={currentUserId}
+        elements={overlay.elements}
+        scrollX={overlay.scrollX}
+        scrollY={overlay.scrollY}
+        zoom={overlay.zoom}
+        selectedElementId={overlay.selectedElementId}
       />
     </div>
   );
