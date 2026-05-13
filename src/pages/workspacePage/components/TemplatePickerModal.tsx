@@ -13,7 +13,6 @@ import {
   GitMerge,
   Grid2x2,
   LayoutDashboard,
-  Lightbulb,
   type LucideIcon,
   Network,
   Palette,
