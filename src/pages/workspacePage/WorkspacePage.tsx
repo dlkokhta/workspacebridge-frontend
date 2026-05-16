@@ -8,7 +8,7 @@ import { WorkspaceTabBar } from "./components/WorkspaceTabBar";
 import { RemoveMemberModal } from "./components/RemoveMemberModal";
 import { MessagesTab } from "./tabs/MessagesTab";
 import { FilesTab } from "./tabs/FilesTab";
-import { WhiteboardTab } from "./tabs/WhiteboardTab";
+import { WhiteboardTab } from "./whiteboard/WhiteboardTab";
 import { SharedLinksTab } from "./tabs/SharedLinksTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import type { Tab, UserProfile, Workspace, WorkspaceDetail, WorkspaceMember } from "./types";

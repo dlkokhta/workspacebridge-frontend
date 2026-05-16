@@ -23,11 +23,11 @@ interface BoardSummary {
   updatedAt: string;
 }
 
-interface WhiteboardPanelProps {
+interface WhiteboardTabProps {
   workspaceId: string;
 }
 
-export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
+export const WhiteboardTab = ({ workspaceId }: WhiteboardTabProps) => {
   const [boards, setBoards] = useState<BoardSummary[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
