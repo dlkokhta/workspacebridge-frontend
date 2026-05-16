@@ -1,0 +1,9 @@
+export const DARK = "#1a201c";
+export const SAGE = "#5a8a6b";
+export const STICKY_YELLOW = "#fff9c4";
+export const STICKY_GREEN = "#d3f4d8";
+export const STICKY_BLUE = "#d8e6f4";
+export const STICKY_PINK = "#f4d8e6";
+export const STICKY_ORANGE = "#fce5cd";
+export const STICKY_PURPLE = "#e8d8f4";
+export const NEUTRAL_BG = "#f5f5f0";

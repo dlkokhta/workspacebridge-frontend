@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { axiosInstance } from "../../../../context/AuthContext";
-import type { WhiteboardTemplate } from "../whiteboardTemplates";
+import type { WhiteboardTemplate } from "../templates";
 
 export interface BoardSummary {
   id: string;

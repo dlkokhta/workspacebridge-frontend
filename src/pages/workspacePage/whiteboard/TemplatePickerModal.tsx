@@ -29,7 +29,7 @@ import {
   WHITEBOARD_TEMPLATES,
   type WhiteboardTemplate,
   type WhiteboardTemplateCategory,
-} from "./whiteboardTemplates";
+} from "./templates";
 
 interface TemplatePickerModalProps {
   isOpen: boolean;
