@@ -24,7 +24,7 @@ import {
 import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { MessagesTab as RealMessagesTab } from "../workspacePage/tabs/MessagesTab";
-import { WhiteboardPanel } from "../workspacePage/components/WhiteboardPanel";
+import { WhiteboardTab } from "../workspacePage/whiteboard/WhiteboardTab";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -155,12 +155,6 @@ const FilesTab = () => {
       </div>
     </div>
   );
-};
-
-// ─── Whiteboard tab ───────────────────────────────────────────────────────────
-
-const WhiteboardTab = ({ workspaceId }: { workspaceId: string }) => {
-  return <WhiteboardPanel workspaceId={workspaceId} />;
 };
 
 // ─── Shared Links tab ─────────────────────────────────────────────────────────
