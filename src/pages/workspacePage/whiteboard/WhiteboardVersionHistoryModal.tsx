@@ -9,6 +9,11 @@ import {
   type WhiteboardVersionSummary,
 } from "../../../hooks/useWhiteboardVersions";
 import { useTheme } from "../../../context/ThemeContext";
+import {
+  formatExactTime,
+  formatPersonName,
+  formatRelativeTime,
+} from "./utils";
 
 const ExcalidrawPreview = lazy(() =>
   import("@excalidraw/excalidraw").then((m) => ({ default: m.Excalidraw })),
@@ -20,35 +25,6 @@ interface WhiteboardVersionHistoryModalProps {
   boardId: string;
   onRestored: (restored: RestoredBoard) => void;
 }
-
-const formatRelative = (iso: string): string => {
-  const date = new Date(iso);
-  const diff = Date.now() - date.getTime();
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h ago`;
-  const day = Math.floor(hr / 24);
-  if (day < 7) return `${day}d ago`;
-  return date.toLocaleDateString();
-};
-
-const formatExact = (iso: string): string => {
-  const date = new Date(iso);
-  return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`;
-};
-
-const formatAuthor = (v: WhiteboardVersionSummary): string => {
-  const { firstname, lastname, email } = v.createdBy;
-  if (firstname && lastname) return `${firstname} ${lastname[0]}.`;
-  if (firstname) return firstname;
-  if (lastname) return lastname;
-  return email.split("@")[0];
-};
 
 interface VersionRowProps {
   version: WhiteboardVersionSummary;
@@ -67,7 +43,7 @@ const VersionRow = ({ version, isSelected, onClick }: VersionRowProps) => (
   >
     <div className="flex items-center justify-between gap-2">
       <span className="text-[13px] font-medium text-[#1a201c] dark:text-[#fafaf7] truncate">
-        {version.label?.trim() || formatRelative(version.createdAt)}
+        {version.label?.trim() || formatRelativeTime(version.createdAt)}
       </span>
       {version.type === "AUTO" && (
         <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-[#858c87] dark:text-[#6e7672]">
@@ -76,7 +52,7 @@ const VersionRow = ({ version, isSelected, onClick }: VersionRowProps) => (
       )}
     </div>
     <div className="mt-0.5 text-[11px] text-[#858c87] dark:text-[#6e7672]">
-      {formatRelative(version.createdAt)} · {formatAuthor(version)}
+      {formatRelativeTime(version.createdAt)} · {formatPersonName(version.createdBy)}
     </div>
   </button>
 );
@@ -229,11 +205,11 @@ export const WhiteboardVersionHistoryModal = ({
                   <div className="min-w-0">
                     <p className="text-[13px] font-medium text-[#1a201c] dark:text-[#fafaf7] truncate">
                       {selectedSummary.label?.trim() ||
-                        `Snapshot from ${formatRelative(selectedSummary.createdAt)}`}
+                        `Snapshot from ${formatRelativeTime(selectedSummary.createdAt)}`}
                     </p>
                     <p className="mt-0.5 text-[11px] text-[#858c87] dark:text-[#6e7672]">
-                      {formatExact(selectedSummary.createdAt)} ·{" "}
-                      {formatAuthor(selectedSummary)} ·{" "}
+                      {formatExactTime(selectedSummary.createdAt)} ·{" "}
+                      {formatPersonName(selectedSummary.createdBy)} ·{" "}
                       {selectedSummary.type === "MANUAL"
                         ? "Manual"
                         : "Auto-saved"}

@@ -14,7 +14,9 @@ import { TemplatePickerModal } from "./TemplatePickerModal";
 import type { WhiteboardTemplate } from "./whiteboardTemplates";
 
 const WhiteboardCanvas = lazy(() =>
-  import("./WhiteboardCanvas").then((m) => ({ default: m.WhiteboardCanvas })),
+  import("./canvas/WhiteboardCanvas").then((m) => ({
+    default: m.WhiteboardCanvas,
+  })),
 );
 
 interface BoardSummary {

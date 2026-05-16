@@ -12,6 +12,11 @@ import {
   useWhiteboardComments,
   type WhiteboardComment,
 } from "../../../hooks/useWhiteboardComments";
+import {
+  formatPersonName,
+  formatRelativeTime,
+  sceneToScreen,
+} from "./utils";
 
 interface WhiteboardCommentLayerProps {
   boardId: string;
@@ -28,39 +33,6 @@ interface ScreenPoint {
   x: number;
   y: number;
 }
-
-const sceneToScreen = (
-  sceneX: number,
-  sceneY: number,
-  scrollX: number,
-  scrollY: number,
-  zoom: number,
-): ScreenPoint => ({
-  x: (sceneX + scrollX) * zoom,
-  y: (sceneY + scrollY) * zoom,
-});
-
-const formatAuthor = (comment: WhiteboardComment): string => {
-  const { firstname, lastname, email } = comment.author;
-  if (firstname && lastname) return `${firstname} ${lastname[0]}.`;
-  if (firstname) return firstname;
-  if (lastname) return lastname;
-  return email.split("@")[0];
-};
-
-const formatTime = (iso: string): string => {
-  const date = new Date(iso);
-  const now = Date.now();
-  const diffMs = now - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 7) return `${diffDay}d ago`;
-  return date.toLocaleDateString();
-};
 
 interface CommentPinProps {
   point: ScreenPoint;
@@ -193,10 +165,10 @@ const CommentPopover = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span className="font-medium text-[#1a201c] dark:text-[#fafaf7]">
-                      {formatAuthor(comment)}
+                      {formatPersonName(comment.author)}
                     </span>
                     <span className="text-[10px] text-[#858c87] dark:text-[#6e7672]">
-                      {formatTime(comment.createdAt)}
+                      {formatRelativeTime(comment.createdAt)}
                     </span>
                   </div>
                   {isMine && (
