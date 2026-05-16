@@ -39,6 +39,7 @@ export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
   );
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [confirmBoard, setConfirmBoard] = useState<BoardSummary | null>(null);
   const menuContainerRef = useRef<HTMLDivElement | null>(null);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -208,13 +209,16 @@ export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
     }
   };
 
-  const handleDelete = async (board: BoardSummary) => {
+  const handleDelete = (board: BoardSummary) => {
     setMenuOpenId(null);
     setMenuPos(null);
-    const confirmed = window.confirm(
-      `Delete "${board.name}"? This cannot be undone.`,
-    );
-    if (!confirmed) return;
+    setConfirmBoard(board);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmBoard) return;
+    const board = confirmBoard;
+    setConfirmBoard(null);
     const remaining = (boards ?? []).filter((b) => b.id !== board.id);
     try {
       await axiosInstance.delete(`/whiteboards/${board.id}`);
@@ -338,7 +342,7 @@ export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
                     <Copy size={12} /> Duplicate
                   </button>
                   <button
-                    onClick={() => void handleDelete(board)}
+                    onClick={() => handleDelete(board)}
                     className="w-full px-3 py-1.5 inline-flex items-center gap-2 text-left text-[#c25a4a] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
                   >
                     <Trash2 size={12} /> Delete
@@ -366,6 +370,38 @@ export const WhiteboardPanel = ({ workspaceId }: WhiteboardPanelProps) => {
         onCreate={handleCreateFromTemplate}
         creating={creating}
       />
+      {confirmBoard &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white dark:bg-[#1a201c] rounded-xl shadow-xl border border-black/[0.08] dark:border-white/[0.07] p-6 w-[320px] flex flex-col gap-4">
+              <p className="text-[14px] font-semibold text-[#1a201c] dark:text-[#fafaf7]">
+                Delete whiteboard
+              </p>
+              <p className="text-[13px] text-[#5a625e] dark:text-[#a0a8a3]">
+                Are you sure you want to delete{" "}
+                <span className="font-medium text-[#1a201c] dark:text-[#fafaf7]">
+                  &ldquo;{confirmBoard.name}&rdquo;
+                </span>
+                ? This cannot be undone.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setConfirmBoard(null)}
+                  className="px-4 py-1.5 rounded-lg text-[13px] font-medium border border-black/[0.1] dark:border-white/[0.1] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => void handleConfirmDelete()}
+                  className="px-4 py-1.5 rounded-lg text-[13px] font-medium bg-[#5a8a6b] text-white hover:bg-[#4d7a5e] transition-colors cursor-pointer"
+                >
+                  Yes, delete
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };
