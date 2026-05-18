@@ -7,7 +7,7 @@ import { WorkspaceTopbar } from "./components/WorkspaceTopbar";
 import { WorkspaceTabBar } from "./components/WorkspaceTabBar";
 import { RemoveMemberModal } from "./components/RemoveMemberModal";
 import { MessagesTab } from "./tabs/MessagesTab";
-import { FilesTab } from "./tabs/FilesTab";
+import { FilesTab } from "./files/FilesTab";
 import { WhiteboardTab } from "./whiteboard/WhiteboardTab";
 import { SharedLinksTab } from "./tabs/SharedLinksTab";
 import { SettingsTab } from "./tabs/SettingsTab";
@@ -111,7 +111,13 @@ export const WorkspacePage = () => {
               initials={initials}
             />
           )}
-          {tab === "files" && <FilesTab />}
+          {tab === "files" && workspace && (
+            <FilesTab
+              workspaceId={id}
+              currentUserId={profile?.id ?? ""}
+              workspaceOwnerId={workspace.ownerId}
+            />
+          )}
           {tab === "whiteboard" && <WhiteboardTab workspaceId={id} />}
           {tab === "shared-links" && <SharedLinksTab />}
           {tab === "settings" && workspace && (
