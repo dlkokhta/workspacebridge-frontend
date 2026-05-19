@@ -17,6 +17,10 @@ export interface FileSummary {
   updatedAt: string;
 }
 
+export interface TrashedFile extends FileSummary {
+  deletedAt: string;
+}
+
 interface DownloadResponse {
   url: string;
   expiresIn: number;
@@ -32,6 +36,10 @@ interface UseFilesResult {
   uploadFile: (file: File) => Promise<void>;
   downloadFile: (fileId: string) => Promise<void>;
   deleteFile: (fileId: string) => Promise<void>;
+  trashedFiles: TrashedFile[] | null;
+  trashLoading: boolean;
+  loadTrash: () => Promise<void>;
+  restoreFile: (fileId: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -51,6 +59,8 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [trashedFiles, setTrashedFiles] = useState<TrashedFile[] | null>(null);
+  const [trashLoading, setTrashLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -135,15 +145,55 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
 
   const deleteFile = useCallback(async (fileId: string) => {
     let previous: FileSummary[] | null = null;
+    let removed: FileSummary | undefined;
     setFiles((prev) => {
       previous = prev;
+      removed = prev?.find((f) => f.id === fileId);
       return prev?.filter((f) => f.id !== fileId) ?? null;
     });
     try {
       await axiosInstance.delete(`/files/${fileId}`);
+      if (removed) {
+        const trashed: TrashedFile = {
+          ...removed,
+          deletedAt: new Date().toISOString(),
+        };
+        setTrashedFiles((prev) => (prev ? [trashed, ...prev] : prev));
+      }
     } catch (err) {
       setFiles(previous);
       setError(extractApiError(err) ?? "Could not delete file.");
+    }
+  }, []);
+
+  const loadTrash = useCallback(async () => {
+    setTrashLoading(true);
+    try {
+      const { data } = await axiosInstance.get<TrashedFile[]>(
+        `/workspace/${workspaceId}/files/trash`,
+      );
+      setTrashedFiles(data);
+    } catch (err) {
+      setError(extractApiError(err) ?? "Could not load trash.");
+    } finally {
+      setTrashLoading(false);
+    }
+  }, [workspaceId]);
+
+  const restoreFile = useCallback(async (fileId: string) => {
+    let previous: TrashedFile[] | null = null;
+    setTrashedFiles((prev) => {
+      previous = prev;
+      return prev?.filter((f) => f.id !== fileId) ?? null;
+    });
+    try {
+      const { data } = await axiosInstance.post<FileSummary>(
+        `/files/${fileId}/restore`,
+      );
+      setFiles((prev) => (prev ? [data, ...prev] : [data]));
+    } catch (err) {
+      setTrashedFiles(previous);
+      setError(extractApiError(err) ?? "Could not restore file.");
     }
   }, []);
 
@@ -158,6 +208,10 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
     uploadFile,
     downloadFile,
     deleteFile,
+    trashedFiles,
+    trashLoading,
+    loadTrash,
+    restoreFile,
     clearError,
   };
 };
