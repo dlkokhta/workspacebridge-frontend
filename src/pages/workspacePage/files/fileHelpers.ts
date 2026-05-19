@@ -24,6 +24,14 @@ export const formatBytes = (bytes: number): string => {
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 };
 
+export const TRASH_RETENTION_DAYS = 30;
+
+export const daysRemainingInTrash = (deletedAt: string): number => {
+  const elapsedMs = Date.now() - new Date(deletedAt).getTime();
+  const remaining = TRASH_RETENTION_DAYS - elapsedMs / (24 * 60 * 60 * 1000);
+  return Math.max(0, Math.ceil(remaining));
+};
+
 export const formatRelativeTime = (iso: string): string => {
   const date = new Date(iso);
   const diff = Date.now() - date.getTime();

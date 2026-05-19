@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Grid3X3, List, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Grid3X3, List, RotateCcw, Trash2, X } from "lucide-react";
 import { useFiles, type FileSummary } from "./useFiles";
 import { FileUploadZone } from "./FileUploadZone";
 import { FileCardActions } from "./FileCardActions";
 import { DeleteFileModal } from "./DeleteFileModal";
 import {
+  daysRemainingInTrash,
   formatBytes,
   formatRelativeTime,
   formatUploader,
@@ -33,14 +34,27 @@ export const FilesTab = ({
     uploadFile,
     downloadFile,
     deleteFile,
+    trashedFiles,
+    trashLoading,
+    loadTrash,
+    restoreFile,
     clearError,
   } = useFiles(workspaceId);
 
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [tab, setTab] = useState<"files" | "trash">("files");
   const [confirmDelete, setConfirmDelete] = useState<FileSummary | null>(null);
+
+  useEffect(() => {
+    if (tab === "trash" && trashedFiles === null && !trashLoading) {
+      void loadTrash();
+    }
+  }, [tab, trashedFiles, trashLoading, loadTrash]);
 
   const canDelete = (file: FileSummary): boolean =>
     file.uploadedBy.id === currentUserId || workspaceOwnerId === currentUserId;
+
+  const canRestore = canDelete;
 
   const handleConfirmDelete = async () => {
     if (!confirmDelete) return;
@@ -52,46 +66,74 @@ export const FilesTab = ({
   return (
     <div className="flex flex-col flex-1 overflow-hidden min-h-0">
       <div className="px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.05] flex items-center justify-between gap-3">
-        <div className="text-[14px] font-medium text-[#1a201c] dark:text-[#e8ece9]">
-          Files
-          {files && (
-            <span className="ml-2 text-[12px] font-normal text-[#858c87] dark:text-[#6e7672]">
-              {files.length} {files.length === 1 ? "file" : "files"}
-            </span>
-          )}
-        </div>
-        <div className="flex bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] rounded-lg p-0.5">
+        <div className="flex items-center gap-1 bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] rounded-lg p-0.5">
           <button
-            onClick={() => setView("grid")}
-            className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors cursor-pointer ${
-              view === "grid"
+            onClick={() => setTab("files")}
+            className={`px-3 h-7 inline-flex items-center gap-1.5 rounded-md text-[12px] font-medium transition-colors cursor-pointer ${
+              tab === "files"
                 ? "bg-white dark:bg-[#2a342e] text-[#1a201c] dark:text-[#e8ece9]"
                 : "text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
             }`}
           >
-            <Grid3X3 size={13} />
+            Files
+            {files && (
+              <span className="text-[11px] font-normal text-[#858c87] dark:text-[#6e7672]">
+                {files.length}
+              </span>
+            )}
           </button>
           <button
-            onClick={() => setView("list")}
-            className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors cursor-pointer ${
-              view === "list"
+            onClick={() => setTab("trash")}
+            className={`px-3 h-7 inline-flex items-center gap-1.5 rounded-md text-[12px] font-medium transition-colors cursor-pointer ${
+              tab === "trash"
                 ? "bg-white dark:bg-[#2a342e] text-[#1a201c] dark:text-[#e8ece9]"
                 : "text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
             }`}
           >
-            <List size={13} />
+            <Trash2 size={12} /> Trash
+            {trashedFiles && (
+              <span className="text-[11px] font-normal text-[#858c87] dark:text-[#6e7672]">
+                {trashedFiles.length}
+              </span>
+            )}
           </button>
         </div>
+        {tab === "files" && (
+          <div className="flex bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] rounded-lg p-0.5">
+            <button
+              onClick={() => setView("grid")}
+              className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors cursor-pointer ${
+                view === "grid"
+                  ? "bg-white dark:bg-[#2a342e] text-[#1a201c] dark:text-[#e8ece9]"
+                  : "text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
+              }`}
+            >
+              <Grid3X3 size={13} />
+            </button>
+            <button
+              onClick={() => setView("list")}
+              className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors cursor-pointer ${
+                view === "list"
+                  ? "bg-white dark:bg-[#2a342e] text-[#1a201c] dark:text-[#e8ece9]"
+                  : "text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
+              }`}
+            >
+              <List size={13} />
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 bg-[#fafaf7] dark:bg-[#0e1310] space-y-4">
-        <div className="relative">
-          <FileUploadZone
-            uploading={uploading}
-            uploadProgress={uploadProgress}
-            onUpload={uploadFile}
-          />
-        </div>
+        {tab === "files" && (
+          <div className="relative">
+            <FileUploadZone
+              uploading={uploading}
+              uploadProgress={uploadProgress}
+              onUpload={uploadFile}
+            />
+          </div>
+        )}
 
         {error && (
           <div className="flex items-start gap-2 px-4 py-3 rounded-lg bg-[#c25a4a]/10 border border-[#c25a4a]/30 text-[12px] text-[#c25a4a]">
@@ -106,7 +148,53 @@ export const FilesTab = ({
           </div>
         )}
 
-        {loading ? (
+        {tab === "trash" ? (
+          trashLoading && trashedFiles === null ? (
+            <div className="text-[13px] text-[#858c87] dark:text-[#6e7672] py-10 text-center">
+              Loading trash…
+            </div>
+          ) : !trashedFiles || trashedFiles.length === 0 ? (
+            <div className="text-[13px] text-[#858c87] dark:text-[#6e7672] py-10 text-center">
+              Trash is empty. Deleted files are kept here for 30 days.
+            </div>
+          ) : (
+            <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden">
+              {trashedFiles.map((file) => {
+                const info = getFileKindInfo(file.mimeType, file.name);
+                const Icon = info.icon;
+                const daysLeft = daysRemainingInTrash(file.deletedAt);
+                return (
+                  <div
+                    key={file.id}
+                    className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04] dark:border-white/[0.03] last:border-0 text-[13px] hover:bg-[#f6f6f1] dark:hover:bg-[#1a201c]/30 transition-colors"
+                  >
+                    <Icon size={16} style={{ color: info.color }} className="shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[#1a201c] dark:text-[#e8ece9]">
+                        {file.name}
+                      </div>
+                      <div className="text-[11px] text-[#858c87] dark:text-[#6e7672]">
+                        {formatBytes(file.size)} · Deleted {formatRelativeTime(file.deletedAt)}
+                        {" · "}
+                        <span className={daysLeft <= 3 ? "text-[#c25a4a]" : ""}>
+                          {daysLeft} {daysLeft === 1 ? "day" : "days"} left
+                        </span>
+                      </div>
+                    </div>
+                    {canRestore(file) && (
+                      <button
+                        onClick={() => void restoreFile(file.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium border border-black/[0.1] dark:border-white/[0.1] text-[#1a201c] dark:text-[#e8ece9] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
+                      >
+                        <RotateCcw size={12} /> Restore
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )
+        ) : loading ? (
           <div className="text-[13px] text-[#858c87] dark:text-[#6e7672] py-10 text-center">
             Loading files…
           </div>
