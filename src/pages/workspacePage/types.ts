@@ -1,4 +1,4 @@
-export type Tab = "messages" | "files" | "whiteboard" | "shared-links" | "settings";
+export type Tab = "messages" | "files" | "whiteboard" | "shared-links" | "todos" | "settings";
 
 export interface UserProfile {
   id: string;
@@ -55,6 +55,22 @@ export interface FileItem {
   by: string;
   comments: number;
   color: string;
+}
+
+export type TaskStatus = "TODO" | "DONE";
+
+export interface Task {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: {
+    id: string;
+    firstname: string | null;
+    lastname: string | null;
+    email: string;
+  } | null;
 }
 
 export interface SharedLink {
