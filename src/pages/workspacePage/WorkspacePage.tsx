@@ -10,6 +10,7 @@ import { MessagesTab } from "./tabs/MessagesTab";
 import { FilesTab } from "./files/FilesTab";
 import { WhiteboardTab } from "./whiteboard/WhiteboardTab";
 import { SharedLinksTab } from "./tabs/SharedLinksTab";
+import { TodosTab } from "./todos/TodosTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import type { Tab, UserProfile, Workspace, WorkspaceDetail, WorkspaceMember } from "./types";
 
@@ -120,6 +121,7 @@ export const WorkspacePage = () => {
           )}
           {tab === "whiteboard" && <WhiteboardTab workspaceId={id} />}
           {tab === "shared-links" && <SharedLinksTab workspaceId={id} />}
+          {tab === "todos" && <TodosTab workspaceId={id} />}
           {tab === "settings" && workspace && (
             <SettingsTab workspace={workspace} onUpdate={setWorkspace} />
           )}
