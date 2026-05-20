@@ -54,7 +54,7 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
 - **Onboarding** — 3-step flow: create workspace (name, description, color) → invite client (email or shareable link) → success
 - **Workspace page** — full app shell with workspace sidebar, 4 tabs:
   - Messages — realtime chat thread (Socket.IO) with file attachment support
-  - Files — grid / list view with upload
+  - Files — drag-and-drop upload zone, grid / list view toggle, file type icons, per-file actions (download, soft-delete to trash, restore from trash, permanent purge), 30-day trash retention with quota awareness
   - Whiteboard — Excalidraw-based collaborative canvas with multi-board support, live remote cursors, save status badge, 15 starter templates, comments pinned to shapes, and version history with one-click restore
   - Shared Links — add/remove URLs shared with the client
 - **Profile / Settings** — edit name, change password, enable/disable 2FA, notification preferences (UI), billing preview
