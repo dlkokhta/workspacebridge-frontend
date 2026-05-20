@@ -40,6 +40,7 @@ interface UseFilesResult {
   trashLoading: boolean;
   loadTrash: () => Promise<void>;
   restoreFile: (fileId: string) => Promise<void>;
+  purgeFile: (fileId: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -197,6 +198,20 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
     }
   }, []);
 
+  const purgeFile = useCallback(async (fileId: string) => {
+    let previous: TrashedFile[] | null = null;
+    setTrashedFiles((prev) => {
+      previous = prev;
+      return prev?.filter((f) => f.id !== fileId) ?? null;
+    });
+    try {
+      await axiosInstance.delete(`/files/${fileId}/purge`);
+    } catch (err) {
+      setTrashedFiles(previous);
+      setError(extractApiError(err) ?? "Could not permanently delete file.");
+    }
+  }, []);
+
   const clearError = useCallback(() => setError(null), []);
 
   return {
@@ -212,6 +227,7 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
     trashLoading,
     loadTrash,
     restoreFile,
+    purgeFile,
     clearError,
   };
 };
