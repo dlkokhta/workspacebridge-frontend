@@ -182,22 +182,22 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
     }
   }, [workspaceId]);
 
-  const restoreFile = useCallback(async (fileId: string) => {
-    let previous: TrashedFile[] | null = null;
-    setTrashedFiles((prev) => {
-      previous = prev;
-      return prev?.filter((f) => f.id !== fileId) ?? null;
-    });
-    try {
-      const { data } = await axiosInstance.post<FileSummary>(
-        `/files/${fileId}/restore`,
-      );
-      setFiles((prev) => (prev ? [data, ...prev] : [data]));
-    } catch (err) {
-      setTrashedFiles(previous);
-      setError(extractApiError(err) ?? "Could not restore file.");
-    }
-  }, []);
+  const restoreFile = useCallback(
+    async (fileId: string) => {
+      const snapshot = trashedFiles;
+      setTrashedFiles(snapshot?.filter((f) => f.id !== fileId) ?? null);
+      try {
+        const { data } = await axiosInstance.post<FileSummary>(
+          `/files/${fileId}/restore`,
+        );
+        setFiles((prev) => (prev ? [data, ...prev] : [data]));
+      } catch (err) {
+        setTrashedFiles(snapshot);
+        setError(extractApiError(err) ?? "Could not restore file.");
+      }
+    },
+    [trashedFiles],
+  );
 
   const purgeFile = useCallback(async (fileId: string) => {
     let previous: TrashedFile[] | null = null;
