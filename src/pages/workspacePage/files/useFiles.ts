@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { isAxiosError } from "axios";
 import { axiosInstance } from "../../../context/AuthContext";
 
@@ -65,6 +65,15 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
   const [trashedFiles, setTrashedFiles] = useState<TrashedFile[] | null>(null);
   const [trashLoading, setTrashLoading] = useState(false);
 
+  // Mirrors the latest workspaceId so async resolutions (uploads, deletes,
+  // rollbacks) can drop their state writes when the user has switched
+  // workspaces mid-request — otherwise a workspace-A response would land in
+  // workspace-B's list.
+  const workspaceIdRef = useRef(workspaceId);
+  useEffect(() => {
+    workspaceIdRef.current = workspaceId;
+  }, [workspaceId]);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -93,6 +102,7 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
 
   const uploadFile = useCallback(
     async (file: File) => {
+      const capturedWorkspaceId = workspaceId;
       setUploading(true);
       setUploadProgress(0);
       setError(null);
@@ -102,7 +112,7 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
         form.append("file", file);
 
         const { data } = await axiosInstance.post<FileSummary>(
-          `/workspace/${workspaceId}/files`,
+          `/workspace/${capturedWorkspaceId}/files`,
           form,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -115,7 +125,9 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
             },
           },
         );
-        setFiles((prev) => (prev ? [data, ...prev] : [data]));
+        if (workspaceIdRef.current === capturedWorkspaceId) {
+          setFiles((prev) => (prev ? [data, ...prev] : [data]));
+        }
       } catch (err) {
         const message = extractApiError(err) ?? "Could not upload file.";
         setError(message);
@@ -148,12 +160,13 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
 
   const deleteFile = useCallback(
     async (fileId: string) => {
+      const capturedWorkspaceId = workspaceId;
       const snapshot = files;
       const removed = snapshot?.find((f) => f.id === fileId);
       setFiles(snapshot?.filter((f) => f.id !== fileId) ?? null);
       try {
         await axiosInstance.delete(`/files/${fileId}`);
-        if (removed) {
+        if (removed && workspaceIdRef.current === capturedWorkspaceId) {
           const trashed: TrashedFile = {
             ...removed,
             deletedAt: new Date().toISOString(),
@@ -161,20 +174,25 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
           setTrashedFiles((prev) => (prev ? [trashed, ...prev] : prev));
         }
       } catch (err) {
-        setFiles(snapshot);
+        if (workspaceIdRef.current === capturedWorkspaceId) {
+          setFiles(snapshot);
+        }
         setError(extractApiError(err) ?? "Could not delete file.");
       }
     },
-    [files],
+    [files, workspaceId],
   );
 
   const loadTrash = useCallback(async () => {
+    const capturedWorkspaceId = workspaceId;
     setTrashLoading(true);
     try {
       const { data } = await axiosInstance.get<TrashedFile[]>(
-        `/workspace/${workspaceId}/files/trash`,
+        `/workspace/${capturedWorkspaceId}/files/trash`,
       );
-      setTrashedFiles(data);
+      if (workspaceIdRef.current === capturedWorkspaceId) {
+        setTrashedFiles(data);
+      }
     } catch (err) {
       setError(extractApiError(err) ?? "Could not load trash.");
     } finally {
@@ -184,33 +202,41 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
 
   const restoreFile = useCallback(
     async (fileId: string) => {
+      const capturedWorkspaceId = workspaceId;
       const snapshot = trashedFiles;
       setTrashedFiles(snapshot?.filter((f) => f.id !== fileId) ?? null);
       try {
         const { data } = await axiosInstance.post<FileSummary>(
           `/files/${fileId}/restore`,
         );
-        setFiles((prev) => (prev ? [data, ...prev] : [data]));
+        if (workspaceIdRef.current === capturedWorkspaceId) {
+          setFiles((prev) => (prev ? [data, ...prev] : [data]));
+        }
       } catch (err) {
-        setTrashedFiles(snapshot);
+        if (workspaceIdRef.current === capturedWorkspaceId) {
+          setTrashedFiles(snapshot);
+        }
         setError(extractApiError(err) ?? "Could not restore file.");
       }
     },
-    [trashedFiles],
+    [trashedFiles, workspaceId],
   );
 
   const purgeFile = useCallback(
     async (fileId: string) => {
+      const capturedWorkspaceId = workspaceId;
       const snapshot = trashedFiles;
       setTrashedFiles(snapshot?.filter((f) => f.id !== fileId) ?? null);
       try {
         await axiosInstance.delete(`/files/${fileId}/purge`);
       } catch (err) {
-        setTrashedFiles(snapshot);
+        if (workspaceIdRef.current === capturedWorkspaceId) {
+          setTrashedFiles(snapshot);
+        }
         setError(extractApiError(err) ?? "Could not permanently delete file.");
       }
     },
-    [trashedFiles],
+    [trashedFiles, workspaceId],
   );
 
   const clearError = useCallback(() => setError(null), []);
