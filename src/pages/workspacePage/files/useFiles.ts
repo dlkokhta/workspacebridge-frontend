@@ -146,28 +146,27 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
     }
   }, []);
 
-  const deleteFile = useCallback(async (fileId: string) => {
-    let previous: FileSummary[] | null = null;
-    let removed: FileSummary | undefined;
-    setFiles((prev) => {
-      previous = prev;
-      removed = prev?.find((f) => f.id === fileId);
-      return prev?.filter((f) => f.id !== fileId) ?? null;
-    });
-    try {
-      await axiosInstance.delete(`/files/${fileId}`);
-      if (removed) {
-        const trashed: TrashedFile = {
-          ...removed,
-          deletedAt: new Date().toISOString(),
-        };
-        setTrashedFiles((prev) => (prev ? [trashed, ...prev] : prev));
+  const deleteFile = useCallback(
+    async (fileId: string) => {
+      const snapshot = files;
+      const removed = snapshot?.find((f) => f.id === fileId);
+      setFiles(snapshot?.filter((f) => f.id !== fileId) ?? null);
+      try {
+        await axiosInstance.delete(`/files/${fileId}`);
+        if (removed) {
+          const trashed: TrashedFile = {
+            ...removed,
+            deletedAt: new Date().toISOString(),
+          };
+          setTrashedFiles((prev) => (prev ? [trashed, ...prev] : prev));
+        }
+      } catch (err) {
+        setFiles(snapshot);
+        setError(extractApiError(err) ?? "Could not delete file.");
       }
-    } catch (err) {
-      setFiles(previous);
-      setError(extractApiError(err) ?? "Could not delete file.");
-    }
-  }, []);
+    },
+    [files],
+  );
 
   const loadTrash = useCallback(async () => {
     setTrashLoading(true);
