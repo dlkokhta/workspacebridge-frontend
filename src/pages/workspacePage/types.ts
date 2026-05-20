@@ -58,11 +58,15 @@ export interface FileItem {
 }
 
 export interface SharedLink {
-  id: number;
-  title: string;
+  id: string;
   url: string;
-  kind: string;
-  by: string;
-  added: string;
-  color: string;
+  title: string | null;
+  createdAt: string;
+  // null when the original adder has been deleted (UI shows "Deleted user").
+  addedBy: {
+    id: string;
+    firstname: string | null;
+    lastname: string | null;
+    email: string;
+  } | null;
 }

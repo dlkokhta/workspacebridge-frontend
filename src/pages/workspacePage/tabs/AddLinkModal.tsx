@@ -1,27 +1,32 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import type { SharedLink } from "../types";
 
 interface AddLinkModalProps {
-  onAdd: (link: SharedLink) => void;
+  onAdd: (input: { url: string; title?: string }) => Promise<void>;
   onClose: () => void;
 }
 
 export const AddLinkModal = ({ onAdd, onClose }: AddLinkModalProps) => {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAdd = () => {
-    onAdd({
-      id: Date.now(),
-      title: title.trim(),
-      url: url.trim(),
-      kind: "Link",
-      by: "You",
-      added: "Just now",
-      color: "#5a8a6b",
-    });
-    onClose();
+  const handleAdd = async () => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      const trimmedTitle = title.trim();
+      await onAdd({
+        url: url.trim(),
+        title: trimmedTitle ? trimmedTitle : undefined,
+      });
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add link.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -38,7 +43,9 @@ export const AddLinkModal = ({ onAdd, onClose }: AddLinkModalProps) => {
         </div>
         <div className="space-y-3">
           <div>
-            <label className="block text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] mb-1.5">Title</label>
+            <label className="block text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] mb-1.5">
+              Title <span className="text-[#b5bbb7] dark:text-[#4a514d]">(optional)</span>
+            </label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -52,24 +59,30 @@ export const AddLinkModal = ({ onAdd, onClose }: AddLinkModalProps) => {
             <input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="figma.com/file/…"
+              placeholder="https://figma.com/file/…"
               className="w-full h-[42px] px-3.5 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[13px] text-[#1a201c] dark:text-[#e8ece9] outline-none focus:border-[#5a8a6b] focus:ring-2 focus:ring-[#5a8a6b]/20 transition-all"
             />
           </div>
+          {error && (
+            <div className="text-[12px] text-[#c25a4a] dark:text-[#e07b6b]">
+              {error}
+            </div>
+          )}
         </div>
         <div className="flex gap-2.5 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 h-10 rounded-lg border border-black/[0.08] dark:border-white/[0.07] text-[13px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
+            disabled={submitting}
+            className="flex-1 h-10 rounded-lg border border-black/[0.08] dark:border-white/[0.07] text-[13px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors cursor-pointer disabled:opacity-50"
           >
             Cancel
           </button>
           <button
-            disabled={!title.trim() || !url.trim()}
+            disabled={!url.trim() || submitting}
             onClick={handleAdd}
             className="flex-[2] h-10 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[13px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add link
+            {submitting ? "Adding…" : "Add link"}
           </button>
         </div>
       </div>
