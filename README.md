@@ -56,7 +56,7 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
   - Messages — realtime chat thread (Socket.IO) with file attachment support
   - Files — drag-and-drop upload zone, grid / list view toggle, file type icons, per-file actions (download, soft-delete to trash, restore from trash, permanent purge), 30-day trash retention with quota awareness
   - Whiteboard — Excalidraw-based collaborative canvas with multi-board support, live remote cursors, save status badge, 15 starter templates, comments pinned to shapes, and version history with one-click restore
-  - Shared Links — add/remove URLs shared with the client
+  - Shared Links — persisted URL bookmarks (Figma files, staging sites, etc.), any workspace member can add, creator or workspace owner can delete, hostname + relative time + adder attribution shown per link
 - **Profile / Settings** — edit name, change password, enable/disable 2FA, notification preferences (UI), billing preview
 - **Admin panel** — list users, change role, delete user, pagination
 
