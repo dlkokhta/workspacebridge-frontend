@@ -89,11 +89,14 @@ export const getFileKindInfo = (mimeType: string, name: string): FileKindInfo =>
   return { label: ext.toUpperCase() || "File", color: "#858c87", icon: FileType };
 };
 
-export const formatUploader = (uploader: {
-  firstname: string | null;
-  lastname: string | null;
-  email: string;
-}): string => {
+export const formatUploader = (
+  uploader: {
+    firstname: string | null;
+    lastname: string | null;
+    email: string;
+  } | null,
+): string => {
+  if (!uploader) return "Deleted user";
   if (uploader.firstname && uploader.lastname) {
     return `${uploader.firstname} ${uploader.lastname[0]}.`;
   }

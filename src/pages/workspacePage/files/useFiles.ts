@@ -7,12 +7,14 @@ export interface FileSummary {
   name: string;
   mimeType: string;
   size: number;
+  // null when the original uploader has deleted their account — the file
+  // itself stays in the workspace (see schema.prisma onDelete: SetNull).
   uploadedBy: {
     id: string;
     firstname: string | null;
     lastname: string | null;
     email: string;
-  };
+  } | null;
   createdAt: string;
   updatedAt: string;
 }

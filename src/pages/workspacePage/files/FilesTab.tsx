@@ -48,7 +48,8 @@ export const FilesTab = ({
   }, [tab, trashedFiles, trashLoading, loadTrash]);
 
   const canDelete = (file: FileSummary): boolean =>
-    file.uploadedBy.id === currentUserId || workspaceOwnerId === currentUserId;
+    file.uploadedBy?.id === currentUserId ||
+    workspaceOwnerId === currentUserId;
 
   const canRestore = canDelete;
 
