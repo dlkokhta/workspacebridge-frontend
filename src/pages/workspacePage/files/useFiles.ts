@@ -199,19 +199,19 @@ export const useFiles = (workspaceId: string): UseFilesResult => {
     [trashedFiles],
   );
 
-  const purgeFile = useCallback(async (fileId: string) => {
-    let previous: TrashedFile[] | null = null;
-    setTrashedFiles((prev) => {
-      previous = prev;
-      return prev?.filter((f) => f.id !== fileId) ?? null;
-    });
-    try {
-      await axiosInstance.delete(`/files/${fileId}/purge`);
-    } catch (err) {
-      setTrashedFiles(previous);
-      setError(extractApiError(err) ?? "Could not permanently delete file.");
-    }
-  }, []);
+  const purgeFile = useCallback(
+    async (fileId: string) => {
+      const snapshot = trashedFiles;
+      setTrashedFiles(snapshot?.filter((f) => f.id !== fileId) ?? null);
+      try {
+        await axiosInstance.delete(`/files/${fileId}/purge`);
+      } catch (err) {
+        setTrashedFiles(snapshot);
+        setError(extractApiError(err) ?? "Could not permanently delete file.");
+      }
+    },
+    [trashedFiles],
+  );
 
   const clearError = useCallback(() => setError(null), []);
 
