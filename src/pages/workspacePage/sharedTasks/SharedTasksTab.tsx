@@ -1,9 +1,9 @@
 import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { Check, CheckSquare, Plus, Trash2 } from "lucide-react";
-import { useTasks } from "./useTasks";
+import { useSharedTasks } from "./useSharedTasks";
 import type { Task } from "../types";
 
-interface TodosTabProps {
+interface SharedTasksTabProps {
   workspaceId: string;
 }
 
@@ -27,9 +27,9 @@ const formatRelative = (iso: string): string => {
   return new Date(iso).toLocaleDateString();
 };
 
-export const TodosTab = ({ workspaceId }: TodosTabProps) => {
+export const SharedTasksTab = ({ workspaceId }: SharedTasksTabProps) => {
   const { tasks, loading, error, addTask, toggleTask, removeTask, clearError } =
-    useTasks(workspaceId);
+    useSharedTasks(workspaceId);
   const [draft, setDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -85,7 +85,7 @@ export const TodosTab = ({ workspaceId }: TodosTabProps) => {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Add a task and press Enter…"
+            placeholder="Add a shared task and press Enter…"
             maxLength={200}
             disabled={submitting}
             className="flex-1 bg-transparent outline-none text-[14px] text-[#1a201c] dark:text-[#e8ece9] placeholder:text-[#858c87] dark:placeholder:text-[#6e7672] disabled:opacity-60"
@@ -108,7 +108,7 @@ export const TodosTab = ({ workspaceId }: TodosTabProps) => {
             </div>
             <div>
               <h3 className="text-[17px] font-semibold text-[#1a201c] dark:text-[#e8ece9] mb-1">
-                No tasks yet
+                No shared tasks yet
               </h3>
               <p className="text-[13px] text-[#5a625e] dark:text-[#a0a8a3] max-w-xs">
                 Track deliverables and client action items here. Both you and

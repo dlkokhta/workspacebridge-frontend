@@ -3,7 +3,7 @@ import { isAxiosError } from "axios";
 import { axiosInstance } from "../../../context/AuthContext";
 import type { Task, TaskStatus } from "../types";
 
-interface UseTasksResult {
+interface UseSharedTasksResult {
   tasks: Task[] | null;
   loading: boolean;
   error: string | null;
@@ -25,7 +25,7 @@ const extractApiError = (err: unknown): string | null => {
   return null;
 };
 
-export const useTasks = (workspaceId: string): UseTasksResult => {
+export const useSharedTasks = (workspaceId: string): UseSharedTasksResult => {
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,12 +43,12 @@ export const useTasks = (workspaceId: string): UseTasksResult => {
     const load = async () => {
       try {
         const { data } = await axiosInstance.get<Task[]>(
-          `/workspace/${workspaceId}/tasks`,
+          `/workspace/${workspaceId}/shared-tasks`,
         );
         if (!cancelled) setTasks(data);
       } catch (err) {
         if (!cancelled) {
-          setError(extractApiError(err) ?? "Could not load tasks.");
+          setError(extractApiError(err) ?? "Could not load shared tasks.");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -67,7 +67,7 @@ export const useTasks = (workspaceId: string): UseTasksResult => {
       setError(null);
       try {
         const { data } = await axiosInstance.post<Task>(
-          `/workspace/${capturedWorkspaceId}/tasks`,
+          `/workspace/${capturedWorkspaceId}/shared-tasks`,
           { title },
         );
         if (workspaceIdRef.current === capturedWorkspaceId) {
@@ -92,9 +92,10 @@ export const useTasks = (workspaceId: string): UseTasksResult => {
         ) ?? null,
       );
       try {
-        const { data } = await axiosInstance.patch<Task>(`/tasks/${taskId}`, {
-          status: nextStatus,
-        });
+        const { data } = await axiosInstance.patch<Task>(
+          `/shared-tasks/${taskId}`,
+          { status: nextStatus },
+        );
         if (workspaceIdRef.current === capturedWorkspaceId) {
           setTasks(
             (prev) => prev?.map((t) => (t.id === taskId ? data : t)) ?? null,
@@ -116,7 +117,7 @@ export const useTasks = (workspaceId: string): UseTasksResult => {
       const snapshot = tasks;
       setTasks(snapshot?.filter((t) => t.id !== taskId) ?? null);
       try {
-        await axiosInstance.delete(`/tasks/${taskId}`);
+        await axiosInstance.delete(`/shared-tasks/${taskId}`);
       } catch (err) {
         if (workspaceIdRef.current === capturedWorkspaceId) {
           setTasks(snapshot);
