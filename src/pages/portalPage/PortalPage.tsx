@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bell,
+  CheckSquare,
   ExternalLink,
   File,
   Link as LinkIcon,
@@ -20,10 +21,11 @@ import { useTheme } from "../../context/ThemeContext";
 import { MessagesTab as RealMessagesTab } from "../workspacePage/tabs/MessagesTab";
 import { WhiteboardTab } from "../workspacePage/whiteboard/WhiteboardTab";
 import { FilesTab as RealFilesTab } from "../workspacePage/files/FilesTab";
+import { SharedTasksTab } from "../workspacePage/sharedTasks/SharedTasksTab";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Tab = "messages" | "files" | "whiteboard" | "shared-links";
+type Tab = "messages" | "files" | "whiteboard" | "shared-links" | "shared-tasks";
 
 interface UserProfile {
   id: string;
@@ -146,6 +148,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "files", label: "Files", icon: <File size={14} /> },
   { id: "whiteboard", label: "Whiteboard", icon: <Pencil size={14} /> },
   { id: "shared-links", label: "Shared Links", icon: <LinkIcon size={14} /> },
+  { id: "shared-tasks", label: "Shared Tasks", icon: <CheckSquare size={14} /> },
 ];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -285,6 +288,7 @@ export const PortalPage = () => {
         )}
         {tab === "whiteboard" && workspace && <WhiteboardTab workspaceId={workspace.id} />}
         {tab === "shared-links" && <SharedLinksTab />}
+        {tab === "shared-tasks" && workspace && <SharedTasksTab workspaceId={workspace.id} />}
       </div>
     </div>
   );
