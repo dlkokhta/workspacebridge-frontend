@@ -1,4 +1,4 @@
-import { CheckSquare, File, Link as LinkIcon, MessageCircle, Pencil, Settings, X } from "lucide-react";
+import { CheckSquare, File, Link as LinkIcon, Lock, MessageCircle, Pencil, Settings, X } from "lucide-react";
 import type { Tab, WorkspaceMember } from "../types";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
@@ -7,6 +7,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] 
   { id: "whiteboard", label: "Whiteboard", icon: <Pencil size={14} /> },
   { id: "shared-links", label: "Shared Links", icon: <LinkIcon size={14} /> },
   { id: "todos", label: "Shared Tasks", icon: <CheckSquare size={14} /> },
+  { id: "my-tasks", label: "My Tasks", icon: <Lock size={14} /> },
   { id: "settings", label: "Settings", icon: <Settings size={14} /> },
 ];
 
