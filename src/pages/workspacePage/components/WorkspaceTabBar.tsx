@@ -6,7 +6,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] 
   { id: "files", label: "Files", icon: <File size={14} />, count: 12 },
   { id: "whiteboard", label: "Whiteboard", icon: <Pencil size={14} /> },
   { id: "shared-links", label: "Shared Links", icon: <LinkIcon size={14} /> },
-  { id: "todos", label: "Todos", icon: <CheckSquare size={14} /> },
+  { id: "todos", label: "Shared Tasks", icon: <CheckSquare size={14} /> },
   { id: "settings", label: "Settings", icon: <Settings size={14} /> },
 ];
 
