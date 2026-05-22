@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { isAxiosError } from "axios";
-import { axiosInstance } from "../../../context/AuthContext";
+import { io, type Socket } from "socket.io-client";
+import { axiosInstance, useAuth } from "../../../context/AuthContext";
 import type { Task, TaskStatus } from "../types";
 
 interface UseSharedTasksResult {
@@ -26,6 +27,7 @@ const extractApiError = (err: unknown): string | null => {
 };
 
 export const useSharedTasks = (workspaceId: string): UseSharedTasksResult => {
+  const { accessToken } = useAuth();
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,18 +63,58 @@ export const useSharedTasks = (workspaceId: string): UseSharedTasksResult => {
     };
   }, [workspaceId]);
 
+  // Real-time sync: open a socket, join the workspace room, listen for
+  // create/update/delete events. The socket is scoped to this hook so it
+  // disconnects when the user leaves the tab or switches workspace.
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const socket: Socket = io(
+      `${import.meta.env.VITE_SOCKET_URL}/shared-tasks`,
+      {
+        auth: { token: accessToken },
+        transports: ["websocket"],
+      },
+    );
+
+    socket.on("connect", () => {
+      socket.emit("joinSharedTasksRoom", { workspaceId });
+    });
+
+    socket.on("sharedTaskCreated", (task: Task) => {
+      setTasks((prev) => {
+        if (!prev) return [task];
+        if (prev.some((t) => t.id === task.id)) return prev;
+        return [task, ...prev];
+      });
+    });
+
+    socket.on("sharedTaskUpdated", (task: Task) => {
+      setTasks(
+        (prev) => prev?.map((t) => (t.id === task.id ? task : t)) ?? null,
+      );
+    });
+
+    socket.on("sharedTaskDeleted", ({ id }: { id: string }) => {
+      setTasks((prev) => prev?.filter((t) => t.id !== id) ?? null);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [workspaceId, accessToken]);
+
   const addTask = useCallback(
     async (title: string) => {
       const capturedWorkspaceId = workspaceId;
       setError(null);
       try {
-        const { data } = await axiosInstance.post<Task>(
+        await axiosInstance.post<Task>(
           `/workspace/${capturedWorkspaceId}/shared-tasks`,
           { title },
         );
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setTasks((prev) => (prev ? [data, ...prev] : [data]));
-        }
+        // The socket "sharedTaskCreated" event will add it to the list,
+        // so no manual setTasks here — prevents a brief duplicate.
       } catch (err) {
         const message = extractApiError(err) ?? "Could not add task.";
         setError(message);
@@ -86,21 +128,16 @@ export const useSharedTasks = (workspaceId: string): UseSharedTasksResult => {
     async (taskId: string, nextStatus: TaskStatus) => {
       const capturedWorkspaceId = workspaceId;
       const snapshot = tasks;
+      // Optimistic update — server will confirm via socket shortly.
       setTasks(
         snapshot?.map((t) =>
           t.id === taskId ? { ...t, status: nextStatus } : t,
         ) ?? null,
       );
       try {
-        const { data } = await axiosInstance.patch<Task>(
-          `/shared-tasks/${taskId}`,
-          { status: nextStatus },
-        );
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setTasks(
-            (prev) => prev?.map((t) => (t.id === taskId ? data : t)) ?? null,
-          );
-        }
+        await axiosInstance.patch<Task>(`/shared-tasks/${taskId}`, {
+          status: nextStatus,
+        });
       } catch (err) {
         if (workspaceIdRef.current === capturedWorkspaceId) {
           setTasks(snapshot);
