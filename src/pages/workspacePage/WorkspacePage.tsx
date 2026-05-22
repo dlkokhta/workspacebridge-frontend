@@ -11,6 +11,7 @@ import { FilesTab } from "./files/FilesTab";
 import { WhiteboardTab } from "./whiteboard/WhiteboardTab";
 import { SharedLinksTab } from "./tabs/SharedLinksTab";
 import { SharedTasksTab } from "./sharedTasks/SharedTasksTab";
+import { MyTasksTab } from "./myTasks/MyTasksTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import type { Tab, UserProfile, Workspace, WorkspaceDetail, WorkspaceMember } from "./types";
 
@@ -122,6 +123,7 @@ export const WorkspacePage = () => {
           {tab === "whiteboard" && <WhiteboardTab workspaceId={id} />}
           {tab === "shared-links" && <SharedLinksTab workspaceId={id} />}
           {tab === "todos" && <SharedTasksTab workspaceId={id} />}
+          {tab === "my-tasks" && <MyTasksTab workspaceId={id} />}
           {tab === "settings" && workspace && (
             <SettingsTab workspace={workspace} onUpdate={setWorkspace} />
           )}
