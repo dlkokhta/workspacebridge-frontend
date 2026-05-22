@@ -73,6 +73,15 @@ export interface Task {
   } | null;
 }
 
+export interface PrivateTask {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  workspaceId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SharedLink {
   id: string;
   url: string;
