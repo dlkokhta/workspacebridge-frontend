@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Copy, Moon, Sun } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { workspacesKey } from "../../hooks/useWorkspaces";
 
 const COLORS = ["#5a8a6b", "#7a9bbf", "#b5803a", "#9a7ab8", "#c25a4a", "#4f7aa3"];
+
+const extractApiMessage = (err: unknown): string | null =>
+  (err as { response?: { data?: { message?: string } } })?.response?.data
+    ?.message ?? null;
 
 export const OnboardingPage = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const queryClient = useQueryClient();
 
   const [step, setStep] = useState(1);
 
@@ -16,7 +23,6 @@ export const OnboardingPage = () => {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [color, setColor] = useState(COLORS[0]);
-  const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
 
@@ -24,9 +30,34 @@ export const OnboardingPage = () => {
   const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
-  const [sendingInvite, setSendingInvite] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSent, setInviteSent] = useState(false);
+
+  const createMutation = useMutation({
+    mutationFn: async (vars: { name: string; description?: string; color: string }) => {
+      const { data } = await axiosInstance.post<{ id: string }>(
+        "/workspace",
+        vars,
+      );
+      return data;
+    },
+    onSuccess: () => {
+      // Refresh the dashboard sidebar so the new workspace shows up
+      // immediately on navigation back.
+      queryClient.invalidateQueries({ queryKey: workspacesKey });
+    },
+  });
+
+  const inviteMutation = useMutation({
+    mutationFn: async (vars: { workspaceId: string; email: string }) => {
+      await axiosInstance.post(`/workspace/${vars.workspaceId}/invite`, {
+        email: vars.email,
+      });
+    },
+  });
+
+  const creating = createMutation.isPending;
+  const sendingInvite = inviteMutation.isPending;
 
   useEffect(() => {
     if (step === 2 && workspaceId) {
@@ -46,37 +77,33 @@ export const OnboardingPage = () => {
 
   const handleCreate = async () => {
     if (!name.trim()) return;
-    setCreating(true);
     setCreateError(null);
     try {
-      const res = await axiosInstance.post<{ id: string }>("/workspace", {
+      const data = await createMutation.mutateAsync({
         name: name.trim(),
         description: desc.trim() || undefined,
         color,
       });
-      setWorkspaceId(res.data.id);
+      setWorkspaceId(data.id);
       setStep(2);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setCreateError(msg ?? "Failed to create workspace. Please try again.");
-    } finally {
-      setCreating(false);
+      setCreateError(
+        extractApiMessage(err) ?? "Failed to create workspace. Please try again.",
+      );
     }
   };
 
   const handleSendInvite = async () => {
     if (!email.trim() || !workspaceId) return;
-    setSendingInvite(true);
     setInviteError(null);
     try {
-      await axiosInstance.post(`/workspace/${workspaceId}/invite`, { email: email.trim() });
+      await inviteMutation.mutateAsync({ workspaceId, email: email.trim() });
       setInviteSent(true);
       setStep(3);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setInviteError(msg ?? "Failed to send invite. Please try again.");
-    } finally {
-      setSendingInvite(false);
+      setInviteError(
+        extractApiMessage(err) ?? "Failed to send invite. Please try again.",
+      );
     }
   };
 
