@@ -13,7 +13,7 @@ import {
   Sun,
   Users,
 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import {
@@ -21,6 +21,10 @@ import {
   useCurrentUser,
   type UserProfile,
 } from "../../hooks/useCurrentUser";
+
+const extractApiMessage = (err: unknown): string | null =>
+  (err as { response?: { data?: { message?: string } } })?.response?.data
+    ?.message ?? null;
 
 type Section = "profile" | "workspace" | "notifications" | "billing" | "security";
 
@@ -115,27 +119,11 @@ export const ProfilePage = () => {
   const profile = profileQuery.data ?? null;
   const loadingProfile = profileQuery.isLoading;
 
-  // Local setter that keeps the cache in sync for mutations that haven't
-  // been migrated yet (saveProfile, 2FA enable/disable). These will move
-  // to useMutation in a follow-up step.
-  const setProfile = (
-    updater: UserProfile | null | ((prev: UserProfile | null) => UserProfile | null),
-  ) => {
-    queryClient.setQueryData<UserProfile>(currentUserKey, (prev) => {
-      const next =
-        typeof updater === "function"
-          ? (updater as (p: UserProfile | null) => UserProfile | null)(prev ?? null)
-          : updater;
-      return next ?? prev;
-    });
-  };
-
   const [section, setSection] = useState<Section>("profile");
 
   // Profile
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
 
@@ -146,7 +134,6 @@ export const ProfilePage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
-  const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
@@ -154,9 +141,65 @@ export const ProfilePage = () => {
   const [twoFactorSetupMode, setTwoFactorSetupMode] = useState(false);
   const [twoFactorQrCode, setTwoFactorQrCode] = useState<string | null>(null);
   const [twoFactorCode, setTwoFactorCode] = useState("");
-  const [twoFactorLoading, setTwoFactorLoading] = useState(false);
   const [twoFactorError, setTwoFactorError] = useState<string | null>(null);
   const [twoFactorSuccess, setTwoFactorSuccess] = useState<string | null>(null);
+
+  const saveProfileMutation = useMutation({
+    mutationFn: async (vars: { firstName: string; lastName: string }) => {
+      const { data } = await axiosInstance.patch<UserProfile>(
+        "/user/me",
+        vars,
+      );
+      return data;
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData<UserProfile>(currentUserKey, updated);
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async (vars: { currentPassword: string; newPassword: string }) => {
+      await axiosInstance.patch("/user/me/password", vars);
+    },
+  });
+
+  const generateTwoFactorMutation = useMutation({
+    mutationFn: async () => {
+      const { data } = await axiosInstance.post<{ qrCodeDataURL: string }>(
+        "/auth/2fa/generate",
+      );
+      return data;
+    },
+  });
+
+  const enableTwoFactorMutation = useMutation({
+    mutationFn: async (code: string) => {
+      await axiosInstance.post("/auth/2fa/enable", { code });
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<UserProfile>(currentUserKey, (prev) =>
+        prev ? { ...prev, isTwoFactorEnabled: true } : prev,
+      );
+    },
+  });
+
+  const disableTwoFactorMutation = useMutation({
+    mutationFn: async (code: string) => {
+      await axiosInstance.post("/auth/2fa/disable", { code });
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<UserProfile>(currentUserKey, (prev) =>
+        prev ? { ...prev, isTwoFactorEnabled: false } : prev,
+      );
+    },
+  });
+
+  const profileSaving = saveProfileMutation.isPending;
+  const passwordSaving = changePasswordMutation.isPending;
+  const twoFactorLoading =
+    generateTwoFactorMutation.isPending ||
+    enableTwoFactorMutation.isPending ||
+    disableTwoFactorMutation.isPending;
 
   // Notifications (visual stub)
   const [notifs, setNotifs] = useState({ msg: true, file: true, prop: true, weekly: false });
@@ -186,19 +229,14 @@ export const ProfilePage = () => {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfileSaving(true);
     setProfileError(null);
     setProfileSuccess(false);
     try {
-      const res = await axiosInstance.patch<UserProfile>("/user/me", { firstName, lastName });
-      setProfile(res.data);
+      await saveProfileMutation.mutateAsync({ firstName, lastName });
       setProfileSuccess(true);
       setTimeout(() => setProfileSuccess(false), 3000);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setProfileError(msg ?? "Failed to save changes");
-    } finally {
-      setProfileSaving(false);
+      setProfileError(extractApiMessage(err) ?? "Failed to save changes");
     }
   };
 
@@ -208,11 +246,10 @@ export const ProfilePage = () => {
       setPasswordError("Passwords do not match");
       return;
     }
-    setPasswordSaving(true);
     setPasswordError(null);
     setPasswordSuccess(false);
     try {
-      await axiosInstance.patch("/user/me/password", { currentPassword, newPassword });
+      await changePasswordMutation.mutateAsync({ currentPassword, newPassword });
       setPasswordSuccess(true);
       setCurrentPassword("");
       setNewPassword("");
@@ -222,64 +259,47 @@ export const ProfilePage = () => {
         setShowPasswordForm(false);
       }, 1800);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setPasswordError(msg ?? "Failed to change password");
-    } finally {
-      setPasswordSaving(false);
+      setPasswordError(extractApiMessage(err) ?? "Failed to change password");
     }
   };
 
   const handleGenerateTwoFactor = async () => {
     setTwoFactorError(null);
-    setTwoFactorLoading(true);
     try {
-      const res = await axiosInstance.post<{ qrCodeDataURL: string }>("/auth/2fa/generate");
-      setTwoFactorQrCode(res.data.qrCodeDataURL);
+      const data = await generateTwoFactorMutation.mutateAsync();
+      setTwoFactorQrCode(data.qrCodeDataURL);
       setTwoFactorSetupMode(true);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setTwoFactorError(msg ?? "Failed to generate QR code");
-    } finally {
-      setTwoFactorLoading(false);
+      setTwoFactorError(extractApiMessage(err) ?? "Failed to generate QR code");
     }
   };
 
   const handleEnableTwoFactor = async (e: React.FormEvent) => {
     e.preventDefault();
     setTwoFactorError(null);
-    setTwoFactorLoading(true);
     try {
-      await axiosInstance.post("/auth/2fa/enable", { code: twoFactorCode });
-      setProfile((prev) => (prev ? { ...prev, isTwoFactorEnabled: true } : prev));
+      await enableTwoFactorMutation.mutateAsync(twoFactorCode);
       setTwoFactorSetupMode(false);
       setTwoFactorQrCode(null);
       setTwoFactorCode("");
       setTwoFactorSuccess("2FA enabled. Your account is now protected.");
       setTimeout(() => setTwoFactorSuccess(null), 4000);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setTwoFactorError(msg ?? "Invalid code. Please try again.");
-    } finally {
-      setTwoFactorLoading(false);
+      setTwoFactorError(extractApiMessage(err) ?? "Invalid code. Please try again.");
     }
   };
 
   const handleDisableTwoFactor = async (e: React.FormEvent) => {
     e.preventDefault();
     setTwoFactorError(null);
-    setTwoFactorLoading(true);
     try {
-      await axiosInstance.post("/auth/2fa/disable", { code: twoFactorCode });
-      setProfile((prev) => (prev ? { ...prev, isTwoFactorEnabled: false } : prev));
+      await disableTwoFactorMutation.mutateAsync(twoFactorCode);
       setTwoFactorCode("");
       setTwoFactorSetupMode(false);
       setTwoFactorSuccess("2FA has been disabled.");
       setTimeout(() => setTwoFactorSuccess(null), 4000);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setTwoFactorError(msg ?? "Invalid code. Please try again.");
-    } finally {
-      setTwoFactorLoading(false);
+      setTwoFactorError(extractApiMessage(err) ?? "Invalid code. Please try again.");
     }
   };
 

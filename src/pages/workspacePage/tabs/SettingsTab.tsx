@@ -1,12 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../../../context/AuthContext";
+import { workspaceDetailKey } from "../../../hooks/useWorkspaceDetail";
+import { workspacesKey, type Workspace } from "../../../hooks/useWorkspaces";
 import type { WorkspaceDetail, WorkspaceMember } from "../types";
 
 interface SettingsTabProps {
   workspace: WorkspaceDetail;
-  onUpdate: (updated: WorkspaceDetail) => void;
 }
+
+const extractApiMessage = (err: unknown): string | null => {
+  return (
+    (err as { response?: { data?: { message?: string } } })?.response?.data
+      ?.message ?? null
+  );
+};
 
 const Row = ({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) => (
   <div className="flex items-start justify-between gap-6 py-5 border-b border-black/[0.06] dark:border-white/[0.05]">
@@ -18,49 +27,77 @@ const Row = ({ title, desc, children }: { title: string; desc?: string; children
   </div>
 );
 
-export const SettingsTab = ({ workspace, onUpdate }: SettingsTabProps) => {
+export const SettingsTab = ({ workspace }: SettingsTabProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [name, setName] = useState(workspace.name);
   const [description, setDescription] = useState(workspace.description ?? "");
-  const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const saveMutation = useMutation({
+    mutationFn: async (vars: { name: string; description: string }) => {
+      const { data } = await axiosInstance.patch<WorkspaceDetail>(
+        `/workspace/${workspace.id}`,
+        vars,
+      );
+      return data;
+    },
+    onSuccess: (updated) => {
+      // Refresh the detail cache + sync the sidebar list (workspace name +
+      // description show up there too).
+      queryClient.setQueryData(workspaceDetailKey(workspace.id), updated);
+      queryClient.setQueryData<Workspace[]>(workspacesKey, (prev) =>
+        prev?.map((w) =>
+          w.id === workspace.id
+            ? { ...w, name: updated.name, description: updated.description }
+            : w,
+        ),
+      );
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await axiosInstance.delete(`/workspace/${workspace.id}`);
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<Workspace[]>(workspacesKey, (prev) =>
+        prev?.filter((w) => w.id !== workspace.id),
+      );
+      queryClient.removeQueries({ queryKey: workspaceDetailKey(workspace.id) });
+      navigate("/dashboard");
+    },
+  });
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
     try {
-      const res = await axiosInstance.patch<WorkspaceDetail>(`/workspace/${workspace.id}`, { name, description });
-      onUpdate(res.data);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      await saveMutation.mutateAsync({ name, description });
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setSaveError(msg ?? "Failed to save changes");
-    } finally {
-      setSaving(false);
+      setSaveError(extractApiMessage(err) ?? "Failed to save changes");
     }
   };
 
   const handleDelete = async () => {
-    setDeleting(true);
     setDeleteError(null);
     try {
-      await axiosInstance.delete(`/workspace/${workspace.id}`);
-      navigate("/dashboard");
+      await deleteMutation.mutateAsync();
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setDeleteError(msg ?? "Failed to delete workspace");
-      setDeleting(false);
+      setDeleteError(extractApiMessage(err) ?? "Failed to delete workspace");
     }
   };
+
+  const saving = saveMutation.isPending;
+  const deleting = deleteMutation.isPending;
 
   const clients = workspace.members.filter((m: WorkspaceMember) => m.role === "CLIENT");
 

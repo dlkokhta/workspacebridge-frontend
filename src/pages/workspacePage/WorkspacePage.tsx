@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
+import { useWorkspaces } from "../../hooks/useWorkspaces";
+import {
+  useWorkspaceDetail,
+  workspaceDetailKey,
+} from "../../hooks/useWorkspaceDetail";
 import { WorkspaceSidebar } from "./components/WorkspaceSidebar";
 import { WorkspaceTopbar } from "./components/WorkspaceTopbar";
 import { WorkspaceTabBar } from "./components/WorkspaceTabBar";
@@ -13,35 +20,57 @@ import { SharedLinksTab } from "./tabs/SharedLinksTab";
 import { SharedTasksTab } from "./sharedTasks/SharedTasksTab";
 import { MyTasksTab } from "./myTasks/MyTasksTab";
 import { SettingsTab } from "./tabs/SettingsTab";
-import type { Tab, UserProfile, Workspace, WorkspaceDetail, WorkspaceMember } from "./types";
+import type { Tab, WorkspaceDetail, WorkspaceMember } from "./types";
 
 export const WorkspacePage = () => {
   const { id = "northwind" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { setAccessToken } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const queryClient = useQueryClient();
 
   const [tab, setTab] = useState<Tab>("messages");
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [workspace, setWorkspace] = useState<WorkspaceDetail | null>(null);
   const [confirmMember, setConfirmMember] = useState<WorkspaceMember | null>(null);
-  const [removing, setRemoving] = useState(false);
+
+  const profileQuery = useCurrentUser();
+  const workspacesQuery = useWorkspaces();
+  const workspaceQuery = useWorkspaceDetail(id);
+
+  const profile = profileQuery.data ?? null;
+  const workspaces = workspacesQuery.data ?? [];
+  const workspace = workspaceQuery.data ?? null;
 
   useEffect(() => {
-    axiosInstance
-      .get<UserProfile>("/user/me")
-      .then((r) => setProfile(r.data))
-      .catch(() => navigate("/login"));
-    axiosInstance
-      .get<Workspace[]>("/workspace")
-      .then((r) => setWorkspaces(r.data))
-      .catch(() => navigate("/login"));
-    axiosInstance
-      .get<WorkspaceDetail>(`/workspace/${id}`)
-      .then((r) => setWorkspace(r.data))
-      .catch(() => navigate("/login"));
-  }, [id, navigate]);
+    if (
+      profileQuery.error ||
+      workspacesQuery.error ||
+      workspaceQuery.error
+    ) {
+      navigate("/login");
+    }
+  }, [
+    profileQuery.error,
+    workspacesQuery.error,
+    workspaceQuery.error,
+    navigate,
+  ]);
+
+  const removeMemberMutation = useMutation({
+    mutationFn: async (member: WorkspaceMember) => {
+      await axiosInstance.delete(
+        `/workspace/${id}/members/${member.user.id}`,
+      );
+      return member;
+    },
+    onSuccess: (removed) => {
+      queryClient.setQueryData<WorkspaceDetail>(workspaceDetailKey(id), (prev) =>
+        prev
+          ? { ...prev, members: prev.members.filter((m) => m.id !== removed.id) }
+          : prev,
+      );
+      setConfirmMember(null);
+    },
+  });
 
   const initials = (() => {
     if (profile?.firstname && profile?.lastname) return `${profile.firstname[0]}${profile.lastname[0]}`.toUpperCase();
@@ -61,20 +90,9 @@ export const WorkspacePage = () => {
     }
   };
 
-  const handleRemoveMember = async () => {
+  const handleRemoveMember = () => {
     if (!confirmMember || !workspace) return;
-    setRemoving(true);
-    try {
-      await axiosInstance.delete(`/workspace/${workspace.id}/members/${confirmMember.user.id}`);
-      setWorkspace((prev) =>
-        prev ? { ...prev, members: prev.members.filter((m) => m.id !== confirmMember.id) } : prev
-      );
-      setConfirmMember(null);
-    } catch {
-      // ignore — could show a toast here later
-    } finally {
-      setRemoving(false);
-    }
+    removeMemberMutation.mutate(confirmMember);
   };
 
   const clients = workspace?.members.filter((m) => m.role === "CLIENT") ?? [];
@@ -125,7 +143,7 @@ export const WorkspacePage = () => {
           {tab === "todos" && <SharedTasksTab workspaceId={id} />}
           {tab === "my-tasks" && <MyTasksTab workspaceId={id} />}
           {tab === "settings" && workspace && (
-            <SettingsTab workspace={workspace} onUpdate={setWorkspace} />
+            <SettingsTab workspace={workspace} />
           )}
         </div>
       </div>
@@ -133,7 +151,7 @@ export const WorkspacePage = () => {
       {confirmMember && (
         <RemoveMemberModal
           member={confirmMember}
-          removing={removing}
+          removing={removeMemberMutation.isPending}
           onCancel={() => setConfirmMember(null)}
           onConfirm={handleRemoveMember}
         />
