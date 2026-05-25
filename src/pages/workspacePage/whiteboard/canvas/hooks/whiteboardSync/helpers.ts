@@ -4,14 +4,16 @@ import type {
   BinaryFiles,
   ExcalidrawImperativeAPI,
 } from "@excalidraw/excalidraw/types";
+import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 
 // Reconcile remote elements against the local scene and apply the result
 // without re-capturing the change (we already know it came from the wire).
+// Returns the reconciled list so the caller can update its synced signature.
 export const applyReconciledScene = (
   api: ExcalidrawImperativeAPI,
   remoteElements: RemoteExcalidrawElement[],
-): RemoteExcalidrawElement[] => {
+): readonly OrderedExcalidrawElement[] => {
   const localElements = api.getSceneElementsIncludingDeleted();
   const reconciled = reconcileElements(
     localElements,
@@ -22,7 +24,7 @@ export const applyReconciledScene = (
     elements: reconciled,
     captureUpdate: CaptureUpdateAction.NEVER,
   });
-  return reconciled as RemoteExcalidrawElement[];
+  return reconciled;
 };
 
 // Add only the files we haven't seen before to the Excalidraw scene, and
