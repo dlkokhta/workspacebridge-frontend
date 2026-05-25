@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
+import { useWorkspaces } from "../../hooks/useWorkspaces";
 import { MessagesTab as RealMessagesTab } from "../workspacePage/tabs/MessagesTab";
 import { WhiteboardTab } from "../workspacePage/whiteboard/WhiteboardTab";
 import { FilesTab as RealFilesTab } from "../workspacePage/files/FilesTab";
@@ -26,22 +28,6 @@ import { SharedTasksTab } from "../workspacePage/sharedTasks/SharedTasksTab";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Tab = "messages" | "files" | "whiteboard" | "shared-links" | "shared-tasks";
-
-interface UserProfile {
-  id: string;
-  firstname: string | null;
-  lastname: string | null;
-  email: string;
-  picture: string | null;
-}
-
-interface Workspace {
-  id: string;
-  name: string;
-  description: string | null;
-  color: string;
-  status: string;
-}
 
 interface SharedLink {
   id: number;
@@ -159,27 +145,21 @@ export const PortalPage = () => {
   const { theme, toggleTheme } = useTheme();
 
   const [tab, setTab] = useState<Tab>("messages");
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  const profileQuery = useCurrentUser();
+  const workspacesQuery = useWorkspaces();
+
+  const profile = profileQuery.data ?? null;
+  // Clients only ever belong to one workspace via the invite flow, so we
+  // pick the first one the API returns.
+  const workspace = workspacesQuery.data?.[0] ?? null;
+  const loading = profileQuery.isLoading || workspacesQuery.isLoading;
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [profileRes, wsRes] = await Promise.all([
-          axiosInstance.get<UserProfile>("/user/me"),
-          axiosInstance.get<Workspace[]>("/workspace"),
-        ]);
-        setProfile(profileRes.data);
-        if (wsRes.data.length > 0) setWorkspace(wsRes.data[0]);
-      } catch {
-        navigate("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [navigate]);
+    if (profileQuery.error || workspacesQuery.error) {
+      navigate("/login");
+    }
+  }, [profileQuery.error, workspacesQuery.error, navigate]);
 
   const getInitials = () => {
     if (profile?.firstname && profile?.lastname) return `${profile.firstname[0]}${profile.lastname[0]}`.toUpperCase();

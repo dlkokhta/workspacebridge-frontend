@@ -13,20 +13,14 @@ import {
   Sun,
   Users,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-
-interface UserProfile {
-  id: string;
-  firstname: string | null;
-  lastname: string | null;
-  email: string;
-  role: "FREELANCER" | "CLIENT" | "ADMIN";
-  picture: string | null;
-  method: string;
-  createdAt: string;
-  isTwoFactorEnabled: boolean;
-}
+import {
+  currentUserKey,
+  useCurrentUser,
+  type UserProfile,
+} from "../../hooks/useCurrentUser";
 
 type Section = "profile" | "workspace" | "notifications" | "billing" | "security";
 
@@ -116,9 +110,27 @@ export const ProfilePage = () => {
   const { setAccessToken } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
+  const queryClient = useQueryClient();
+  const profileQuery = useCurrentUser();
+  const profile = profileQuery.data ?? null;
+  const loadingProfile = profileQuery.isLoading;
+
+  // Local setter that keeps the cache in sync for mutations that haven't
+  // been migrated yet (saveProfile, 2FA enable/disable). These will move
+  // to useMutation in a follow-up step.
+  const setProfile = (
+    updater: UserProfile | null | ((prev: UserProfile | null) => UserProfile | null),
+  ) => {
+    queryClient.setQueryData<UserProfile>(currentUserKey, (prev) => {
+      const next =
+        typeof updater === "function"
+          ? (updater as (p: UserProfile | null) => UserProfile | null)(prev ?? null)
+          : updater;
+      return next ?? prev;
+    });
+  };
+
   const [section, setSection] = useState<Section>("profile");
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
 
   // Profile
   const [firstName, setFirstName] = useState("");
@@ -149,21 +161,17 @@ export const ProfilePage = () => {
   // Notifications (visual stub)
   const [notifs, setNotifs] = useState({ msg: true, file: true, prop: true, weekly: false });
 
+  // Populate the editable form fields once the profile arrives.
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axiosInstance.get<UserProfile>("/user/me");
-        setProfile(res.data);
-        setFirstName(res.data.firstname ?? "");
-        setLastName(res.data.lastname ?? "");
-      } catch {
-        navigate("/login");
-      } finally {
-        setLoadingProfile(false);
-      }
-    };
-    fetchProfile();
-  }, [navigate]);
+    if (profileQuery.data) {
+      setFirstName(profileQuery.data.firstname ?? "");
+      setLastName(profileQuery.data.lastname ?? "");
+    }
+  }, [profileQuery.data]);
+
+  useEffect(() => {
+    if (profileQuery.error) navigate("/login");
+  }, [profileQuery.error, navigate]);
 
   const handleLogout = async () => {
     try {

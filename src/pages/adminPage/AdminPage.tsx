@@ -1,25 +1,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, axiosInstance } from "../../context/AuthContext";
-
-interface User {
-  id: string;
-  email: string;
-  firstname: string | null;
-  lastname: string | null;
-  role: string;
-  method: string;
-  isVerified: boolean;
-  createdAt: string;
-}
+import { useAdminUsers, type AdminUser } from "../../hooks/useAdminUsers";
 
 export const AdminPage = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loadingRoleId, setLoadingRoleId] = useState<string | null>(null);
-  const [confirmingUser, setConfirmingUser] = useState<User | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { setAccessToken } = useAuth();
+  const {
+    users,
+    error,
+    updateRole,
+    deleteUser,
+    updatingRoleId,
+    deletingId,
+  } = useAdminUsers();
+
+  const [confirmingUser, setConfirmingUser] = useState<AdminUser | null>(null);
+
+  // Match the original behavior: if the list fetch fails (e.g. 401 after the
+  // axios interceptor's refresh attempt), bounce to login.
+  useEffect(() => {
+    if (error) navigate("/login");
+  }, [error, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -32,54 +34,20 @@ export const AdminPage = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axiosInstance.get("/admin/users");
-        setUsers(response.data);
-      } catch {
-        navigate("/login");
-      }
-    };
-    fetchUsers();
-  }, [navigate]);
-
-  const handleRoleChange = (user: User, newRole: string) => {
+  const handleRoleChange = (user: AdminUser, newRole: string) => {
     if (user.role === newRole) return;
-
-    setUsers((prev) =>
-      prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
-    );
-    setLoadingRoleId(user.id);
-
-    axiosInstance
-      .patch(`/admin/users/${user.id}/role`, { role: newRole })
-      .then(() => setLoadingRoleId(null))
-      .catch(() => {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === user.id ? { ...u, role: user.role } : u))
-        );
-        setLoadingRoleId(null);
-      });
+    void updateRole(user.id, newRole);
   };
 
-  const handleDeleteClick = (user: User) => setConfirmingUser(user);
+  const handleDeleteClick = (user: AdminUser) => setConfirmingUser(user);
 
   const handleCancelDelete = () => setConfirmingUser(null);
 
   const handleConfirmDelete = () => {
     if (!confirmingUser) return;
     const id = confirmingUser.id;
-
     setConfirmingUser(null);
-    setDeletingId(id);
-    axiosInstance
-      .delete(`/admin/users/${id}`)
-      .then(() => {
-        setUsers((prev) => prev.filter((u) => u.id !== id));
-        setDeletingId(null);
-      })
-      .catch(() => setDeletingId(null));
+    void deleteUser(id);
   };
 
   return (
@@ -146,7 +114,7 @@ export const AdminPage = () => {
                   <td className="px-4 py-3 text-sm">
                     <select
                       value={user.role}
-                      disabled={loadingRoleId === user.id}
+                      disabled={updatingRoleId === user.id}
                       onChange={(e) => handleRoleChange(user, e.target.value)}
                       className={`px-2 py-1 rounded text-xs font-semibold border-0 cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
                         user.role === "ADMIN"

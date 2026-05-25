@@ -131,7 +131,12 @@ export const useWhiteboardComments = (
     [deleteMutation],
   );
 
-  const comments = listQuery.data ?? [];
+  // Stabilize the empty-fallback so downstream memos don't see a fresh
+  // array reference on every render.
+  const comments = useMemo(
+    () => listQuery.data ?? [],
+    [listQuery.data],
+  );
 
   const commentsByElement = useMemo(() => {
     const map = new Map<string, WhiteboardComment[]>();

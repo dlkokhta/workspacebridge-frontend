@@ -1,24 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { LayoutDashboard, LogOut, Plus, Search, Settings } from "lucide-react";
 import { axiosInstance, useAuth } from "../context/AuthContext";
-
-interface UserProfile {
-  id: string;
-  firstname: string | null;
-  lastname: string | null;
-  email: string;
-  picture: string | null;
-}
-
-interface Workspace {
-  id: string;
-  name: string;
-  description: string | null;
-  color: string;
-  status: "ACTIVE" | "COMPLETED" | "ARCHIVED";
-  createdAt: string;
-}
+import { useCurrentUser, type UserProfile } from "../hooks/useCurrentUser";
+import { useWorkspaces, type Workspace } from "../hooks/useWorkspaces";
 
 export interface AppShellContext {
   profile: UserProfile | null;
@@ -30,28 +15,24 @@ export const AppShell = () => {
   const navigate = useNavigate();
   const { setAccessToken } = useAuth();
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [loading, setLoading] = useState(true);
+  const profileQuery = useCurrentUser();
+  const workspacesQuery = useWorkspaces();
 
-  const fetchData = async () => {
-    try {
-      const [profileRes, wsRes] = await Promise.all([
-        axiosInstance.get<UserProfile>("/user/me"),
-        axiosInstance.get<Workspace[]>("/workspace"),
-      ]);
-      setProfile(profileRes.data);
-      setWorkspaces(wsRes.data);
-    } catch {
-      navigate("/login");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const profile = profileQuery.data ?? null;
+  const workspaces = workspacesQuery.data ?? [];
+  const loading = profileQuery.isLoading || workspacesQuery.isLoading;
 
+  // If either fetch fails after auth retries, the session is unrecoverable —
+  // bounce to login.
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (profileQuery.error || workspacesQuery.error) {
+      navigate("/login");
+    }
+  }, [profileQuery.error, workspacesQuery.error, navigate]);
+
+  const refetchWorkspaces = async () => {
+    await workspacesQuery.refetch();
+  };
 
   const handleLogout = async () => {
     try {
@@ -80,7 +61,7 @@ export const AppShell = () => {
     );
   }
 
-  const context: AppShellContext = { profile, workspaces, refetchWorkspaces: fetchData };
+  const context: AppShellContext = { profile, workspaces, refetchWorkspaces };
 
   return (
     <div className="h-screen grid grid-cols-1 lg:grid-cols-[248px_1fr] bg-[#fafaf7] dark:bg-[#0e1310] overflow-hidden">
