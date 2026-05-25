@@ -1,6 +1,6 @@
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
-import { AppPreview } from "./components/AppPreview";
+import { AppPreview } from "./components/appPreview/AppPreview";
 import { Features } from "./components/Features";
 import { HowItWorks } from "./components/HowItWorks";
 import { Pricing } from "./components/Pricing";
