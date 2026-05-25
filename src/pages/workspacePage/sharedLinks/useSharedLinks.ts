@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { isAxiosError } from "axios";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../../../context/AuthContext";
 import type { SharedLink } from "../types";
 
@@ -29,82 +30,99 @@ const extractApiError = (err: unknown): string | null => {
   return null;
 };
 
+const keys = {
+  list: (workspaceId: string) => ["shared-links", workspaceId] as const,
+};
+
 export const useSharedLinks = (workspaceId: string): UseSharedLinksResult => {
-  const [links, setLinks] = useState<SharedLink[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
-  // Mirrors useFiles: drop async state writes after a workspace switch.
-  const workspaceIdRef = useRef(workspaceId);
-  useEffect(() => {
-    workspaceIdRef.current = workspaceId;
-  }, [workspaceId]);
+  const listQuery = useQuery({
+    queryKey: keys.list(workspaceId),
+    queryFn: async () => {
+      const { data } = await axiosInstance.get<SharedLink[]>(
+        `/workspace/${workspaceId}/links`,
+      );
+      return data;
+    },
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
+  const addMutation = useMutation({
+    mutationFn: async (input: CreateSharedLinkInput) => {
+      const { data } = await axiosInstance.post<SharedLink>(
+        `/workspace/${workspaceId}/links`,
+        input,
+      );
+      return data;
+    },
+    onSuccess: (created) => {
+      queryClient.setQueryData<SharedLink[]>(keys.list(workspaceId), (prev) =>
+        prev ? [created, ...prev] : [created],
+      );
+    },
+  });
 
-    const load = async () => {
-      try {
-        const { data } = await axiosInstance.get<SharedLink[]>(
-          `/workspace/${workspaceId}/links`,
-        );
-        if (!cancelled) setLinks(data);
-      } catch (err) {
-        if (!cancelled) {
-          setError(extractApiError(err) ?? "Could not load links.");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+  const removeMutation = useMutation({
+    mutationFn: async (linkId: string) => {
+      await axiosInstance.delete(`/links/${linkId}`);
+      return linkId;
+    },
+    // Optimistic update: drop immediately, restore from snapshot on failure.
+    onMutate: async (linkId) => {
+      await queryClient.cancelQueries({ queryKey: keys.list(workspaceId) });
+      const snapshot = queryClient.getQueryData<SharedLink[]>(
+        keys.list(workspaceId),
+      );
+      queryClient.setQueryData<SharedLink[]>(keys.list(workspaceId), (prev) =>
+        prev?.filter((l) => l.id !== linkId),
+      );
+      return { snapshot };
+    },
+    onError: (_err, _linkId, ctx) => {
+      if (ctx?.snapshot) {
+        queryClient.setQueryData(keys.list(workspaceId), ctx.snapshot);
       }
-    };
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [workspaceId]);
+    },
+  });
 
   const addLink = useCallback(
     async (input: CreateSharedLinkInput) => {
-      const capturedWorkspaceId = workspaceId;
-      setError(null);
+      setMutationError(null);
       try {
-        const { data } = await axiosInstance.post<SharedLink>(
-          `/workspace/${capturedWorkspaceId}/links`,
-          input,
-        );
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setLinks((prev) => (prev ? [data, ...prev] : [data]));
-        }
+        await addMutation.mutateAsync(input);
       } catch (err) {
         const message = extractApiError(err) ?? "Could not add link.";
-        setError(message);
+        setMutationError(message);
         throw new Error(message);
       }
     },
-    [workspaceId],
+    [addMutation],
   );
 
   const removeLink = useCallback(
     async (linkId: string) => {
-      const capturedWorkspaceId = workspaceId;
-      const snapshot = links;
-      setLinks(snapshot?.filter((l) => l.id !== linkId) ?? null);
       try {
-        await axiosInstance.delete(`/links/${linkId}`);
+        await removeMutation.mutateAsync(linkId);
       } catch (err) {
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setLinks(snapshot);
-        }
-        setError(extractApiError(err) ?? "Could not delete link.");
+        setMutationError(extractApiError(err) ?? "Could not delete link.");
       }
     },
-    [links, workspaceId],
+    [removeMutation],
   );
 
-  const clearError = useCallback(() => setError(null), []);
+  const clearError = useCallback(() => setMutationError(null), []);
 
-  return { links, loading, error, addLink, removeLink, clearError };
+  const queryError = listQuery.error
+    ? (extractApiError(listQuery.error) ?? "Could not load links.")
+    : null;
+
+  return {
+    links: listQuery.data ?? null,
+    loading: listQuery.isLoading,
+    error: mutationError ?? queryError,
+    addLink,
+    removeLink,
+    clearError,
+  };
 };
