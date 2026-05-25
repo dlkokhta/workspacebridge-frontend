@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { isAxiosError } from "axios";
 import { io, type Socket } from "socket.io-client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance, useAuth } from "../../../context/AuthContext";
 import type { Task, TaskStatus } from "../types";
 
@@ -26,46 +27,28 @@ const extractApiError = (err: unknown): string | null => {
   return null;
 };
 
+const keys = {
+  list: (workspaceId: string) => ["shared-tasks", workspaceId] as const,
+};
+
 export const useSharedTasks = (workspaceId: string): UseSharedTasksResult => {
   const { accessToken } = useAuth();
-  const [tasks, setTasks] = useState<Task[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
-  const workspaceIdRef = useRef(workspaceId);
-  useEffect(() => {
-    workspaceIdRef.current = workspaceId;
-  }, [workspaceId]);
+  const listQuery = useQuery({
+    queryKey: keys.list(workspaceId),
+    queryFn: async () => {
+      const { data } = await axiosInstance.get<Task[]>(
+        `/workspace/${workspaceId}/shared-tasks`,
+      );
+      return data;
+    },
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-
-    const load = async () => {
-      try {
-        const { data } = await axiosInstance.get<Task[]>(
-          `/workspace/${workspaceId}/shared-tasks`,
-        );
-        if (!cancelled) setTasks(data);
-      } catch (err) {
-        if (!cancelled) {
-          setError(extractApiError(err) ?? "Could not load shared tasks.");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [workspaceId]);
-
-  // Real-time sync: open a socket, join the workspace room, listen for
-  // create/update/delete events. The socket is scoped to this hook so it
-  // disconnects when the user leaves the tab or switches workspace.
+  // Real-time sync: socket events write straight into the React Query cache
+  // via setQueryData, so subscribers re-render with the new value. Socket is
+  // scoped to this hook — disconnects on tab leave or workspace switch.
   useEffect(() => {
     if (!accessToken) return;
 
@@ -82,7 +65,7 @@ export const useSharedTasks = (workspaceId: string): UseSharedTasksResult => {
     });
 
     socket.on("sharedTaskCreated", (task: Task) => {
-      setTasks((prev) => {
+      queryClient.setQueryData<Task[]>(keys.list(workspaceId), (prev) => {
         if (!prev) return [task];
         if (prev.some((t) => t.id === task.id)) return prev;
         return [task, ...prev];
@@ -90,82 +73,125 @@ export const useSharedTasks = (workspaceId: string): UseSharedTasksResult => {
     });
 
     socket.on("sharedTaskUpdated", (task: Task) => {
-      setTasks(
-        (prev) => prev?.map((t) => (t.id === task.id ? task : t)) ?? null,
+      queryClient.setQueryData<Task[]>(keys.list(workspaceId), (prev) =>
+        prev?.map((t) => (t.id === task.id ? task : t)),
       );
     });
 
     socket.on("sharedTaskDeleted", ({ id }: { id: string }) => {
-      setTasks((prev) => prev?.filter((t) => t.id !== id) ?? null);
+      queryClient.setQueryData<Task[]>(keys.list(workspaceId), (prev) =>
+        prev?.filter((t) => t.id !== id),
+      );
     });
 
     return () => {
       socket.disconnect();
     };
-  }, [workspaceId, accessToken]);
+  }, [workspaceId, accessToken, queryClient]);
+
+  const addMutation = useMutation({
+    mutationFn: async (title: string) => {
+      await axiosInstance.post<Task>(
+        `/workspace/${workspaceId}/shared-tasks`,
+        { title },
+      );
+      // No cache write here — the "sharedTaskCreated" socket event will
+      // add it to the list, avoiding a brief duplicate.
+    },
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: async (vars: { taskId: string; nextStatus: TaskStatus }) => {
+      await axiosInstance.patch<Task>(`/shared-tasks/${vars.taskId}`, {
+        status: vars.nextStatus,
+      });
+    },
+    onMutate: async ({ taskId, nextStatus }) => {
+      await queryClient.cancelQueries({ queryKey: keys.list(workspaceId) });
+      const snapshot = queryClient.getQueryData<Task[]>(keys.list(workspaceId));
+      queryClient.setQueryData<Task[]>(keys.list(workspaceId), (prev) =>
+        prev?.map((t) =>
+          t.id === taskId ? { ...t, status: nextStatus } : t,
+        ),
+      );
+      return { snapshot };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.snapshot) {
+        queryClient.setQueryData(keys.list(workspaceId), ctx.snapshot);
+      }
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (taskId: string) => {
+      await axiosInstance.delete(`/shared-tasks/${taskId}`);
+      return taskId;
+    },
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({ queryKey: keys.list(workspaceId) });
+      const snapshot = queryClient.getQueryData<Task[]>(keys.list(workspaceId));
+      queryClient.setQueryData<Task[]>(keys.list(workspaceId), (prev) =>
+        prev?.filter((t) => t.id !== taskId),
+      );
+      return { snapshot };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.snapshot) {
+        queryClient.setQueryData(keys.list(workspaceId), ctx.snapshot);
+      }
+    },
+  });
 
   const addTask = useCallback(
     async (title: string) => {
-      const capturedWorkspaceId = workspaceId;
-      setError(null);
+      setMutationError(null);
       try {
-        await axiosInstance.post<Task>(
-          `/workspace/${capturedWorkspaceId}/shared-tasks`,
-          { title },
-        );
-        // The socket "sharedTaskCreated" event will add it to the list,
-        // so no manual setTasks here — prevents a brief duplicate.
+        await addMutation.mutateAsync(title);
       } catch (err) {
         const message = extractApiError(err) ?? "Could not add task.";
-        setError(message);
+        setMutationError(message);
         throw new Error(message);
       }
     },
-    [workspaceId],
+    [addMutation],
   );
 
   const toggleTask = useCallback(
     async (taskId: string, nextStatus: TaskStatus) => {
-      const capturedWorkspaceId = workspaceId;
-      const snapshot = tasks;
-      // Optimistic update — server will confirm via socket shortly.
-      setTasks(
-        snapshot?.map((t) =>
-          t.id === taskId ? { ...t, status: nextStatus } : t,
-        ) ?? null,
-      );
       try {
-        await axiosInstance.patch<Task>(`/shared-tasks/${taskId}`, {
-          status: nextStatus,
-        });
+        await toggleMutation.mutateAsync({ taskId, nextStatus });
       } catch (err) {
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setTasks(snapshot);
-        }
-        setError(extractApiError(err) ?? "Could not update task.");
+        setMutationError(extractApiError(err) ?? "Could not update task.");
       }
     },
-    [tasks, workspaceId],
+    [toggleMutation],
   );
 
   const removeTask = useCallback(
     async (taskId: string) => {
-      const capturedWorkspaceId = workspaceId;
-      const snapshot = tasks;
-      setTasks(snapshot?.filter((t) => t.id !== taskId) ?? null);
       try {
-        await axiosInstance.delete(`/shared-tasks/${taskId}`);
+        await removeMutation.mutateAsync(taskId);
       } catch (err) {
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setTasks(snapshot);
-        }
-        setError(extractApiError(err) ?? "Could not delete task.");
+        setMutationError(extractApiError(err) ?? "Could not delete task.");
       }
     },
-    [tasks, workspaceId],
+    [removeMutation],
   );
 
-  const clearError = useCallback(() => setError(null), []);
+  const clearError = useCallback(() => setMutationError(null), []);
 
-  return { tasks, loading, error, addTask, toggleTask, removeTask, clearError };
+  const queryError = listQuery.error
+    ? (extractApiError(listQuery.error) ?? "Could not load shared tasks.")
+    : null;
+
+  return {
+    tasks: listQuery.data ?? null,
+    loading: listQuery.isLoading,
+    error: mutationError ?? queryError,
+    addTask,
+    toggleTask,
+    removeTask,
+    clearError,
+  };
 };
