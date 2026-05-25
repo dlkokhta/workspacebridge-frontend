@@ -27,6 +27,7 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
 | Routing | React Router v7 |
 | Forms | React Hook Form + Yup |
 | HTTP | Axios with auto-refresh interceptor |
+| Server state | TanStack Query (React Query) — caching, mutations, optimistic updates |
 | Realtime | Socket.IO client (chat, whiteboard sync, presence) |
 | Whiteboard | Excalidraw |
 | Icons | Lucide React |
