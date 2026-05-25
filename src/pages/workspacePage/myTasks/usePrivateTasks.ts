@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { isAxiosError } from "axios";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../../../context/AuthContext";
 import type { PrivateTask, TaskStatus } from "../types";
 
@@ -25,110 +26,143 @@ const extractApiError = (err: unknown): string | null => {
   return null;
 };
 
+const keys = {
+  list: (workspaceId: string) => ["private-tasks", workspaceId] as const,
+};
+
 export const usePrivateTasks = (workspaceId: string): UsePrivateTasksResult => {
-  const [tasks, setTasks] = useState<PrivateTask[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
-  const workspaceIdRef = useRef(workspaceId);
-  useEffect(() => {
-    workspaceIdRef.current = workspaceId;
-  }, [workspaceId]);
+  const listQuery = useQuery({
+    queryKey: keys.list(workspaceId),
+    queryFn: async () => {
+      const { data } = await axiosInstance.get<PrivateTask[]>(
+        `/workspace/${workspaceId}/private-tasks`,
+      );
+      return data;
+    },
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
+  const addMutation = useMutation({
+    mutationFn: async (title: string) => {
+      const { data } = await axiosInstance.post<PrivateTask>(
+        `/workspace/${workspaceId}/private-tasks`,
+        { title },
+      );
+      return data;
+    },
+    onSuccess: (created) => {
+      queryClient.setQueryData<PrivateTask[]>(keys.list(workspaceId), (prev) =>
+        prev ? [created, ...prev] : [created],
+      );
+    },
+  });
 
-    const load = async () => {
-      try {
-        const { data } = await axiosInstance.get<PrivateTask[]>(
-          `/workspace/${workspaceId}/private-tasks`,
-        );
-        if (!cancelled) setTasks(data);
-      } catch (err) {
-        if (!cancelled) {
-          setError(extractApiError(err) ?? "Could not load private tasks.");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+  const toggleMutation = useMutation({
+    mutationFn: async (vars: { taskId: string; nextStatus: TaskStatus }) => {
+      const { data } = await axiosInstance.patch<PrivateTask>(
+        `/private-tasks/${vars.taskId}`,
+        { status: vars.nextStatus },
+      );
+      return data;
+    },
+    onMutate: async ({ taskId, nextStatus }) => {
+      await queryClient.cancelQueries({ queryKey: keys.list(workspaceId) });
+      const snapshot = queryClient.getQueryData<PrivateTask[]>(
+        keys.list(workspaceId),
+      );
+      queryClient.setQueryData<PrivateTask[]>(keys.list(workspaceId), (prev) =>
+        prev?.map((t) =>
+          t.id === taskId ? { ...t, status: nextStatus } : t,
+        ),
+      );
+      return { snapshot };
+    },
+    onSuccess: (updated) => {
+      // Replace the optimistic copy with the canonical server version.
+      queryClient.setQueryData<PrivateTask[]>(keys.list(workspaceId), (prev) =>
+        prev?.map((t) => (t.id === updated.id ? updated : t)),
+      );
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.snapshot) {
+        queryClient.setQueryData(keys.list(workspaceId), ctx.snapshot);
       }
-    };
+    },
+  });
 
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [workspaceId]);
+  const removeMutation = useMutation({
+    mutationFn: async (taskId: string) => {
+      await axiosInstance.delete(`/private-tasks/${taskId}`);
+      return taskId;
+    },
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({ queryKey: keys.list(workspaceId) });
+      const snapshot = queryClient.getQueryData<PrivateTask[]>(
+        keys.list(workspaceId),
+      );
+      queryClient.setQueryData<PrivateTask[]>(keys.list(workspaceId), (prev) =>
+        prev?.filter((t) => t.id !== taskId),
+      );
+      return { snapshot };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.snapshot) {
+        queryClient.setQueryData(keys.list(workspaceId), ctx.snapshot);
+      }
+    },
+  });
 
   const addTask = useCallback(
     async (title: string) => {
-      const capturedWorkspaceId = workspaceId;
-      setError(null);
+      setMutationError(null);
       try {
-        const { data } = await axiosInstance.post<PrivateTask>(
-          `/workspace/${capturedWorkspaceId}/private-tasks`,
-          { title },
-        );
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setTasks((prev) => (prev ? [data, ...prev] : [data]));
-        }
+        await addMutation.mutateAsync(title);
       } catch (err) {
         const message = extractApiError(err) ?? "Could not add task.";
-        setError(message);
+        setMutationError(message);
         throw new Error(message);
       }
     },
-    [workspaceId],
+    [addMutation],
   );
 
   const toggleTask = useCallback(
     async (taskId: string, nextStatus: TaskStatus) => {
-      const capturedWorkspaceId = workspaceId;
-      const snapshot = tasks;
-      setTasks(
-        snapshot?.map((t) =>
-          t.id === taskId ? { ...t, status: nextStatus } : t,
-        ) ?? null,
-      );
       try {
-        const { data } = await axiosInstance.patch<PrivateTask>(
-          `/private-tasks/${taskId}`,
-          { status: nextStatus },
-        );
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setTasks(
-            (prev) => prev?.map((t) => (t.id === taskId ? data : t)) ?? null,
-          );
-        }
+        await toggleMutation.mutateAsync({ taskId, nextStatus });
       } catch (err) {
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setTasks(snapshot);
-        }
-        setError(extractApiError(err) ?? "Could not update task.");
+        setMutationError(extractApiError(err) ?? "Could not update task.");
       }
     },
-    [tasks, workspaceId],
+    [toggleMutation],
   );
 
   const removeTask = useCallback(
     async (taskId: string) => {
-      const capturedWorkspaceId = workspaceId;
-      const snapshot = tasks;
-      setTasks(snapshot?.filter((t) => t.id !== taskId) ?? null);
       try {
-        await axiosInstance.delete(`/private-tasks/${taskId}`);
+        await removeMutation.mutateAsync(taskId);
       } catch (err) {
-        if (workspaceIdRef.current === capturedWorkspaceId) {
-          setTasks(snapshot);
-        }
-        setError(extractApiError(err) ?? "Could not delete task.");
+        setMutationError(extractApiError(err) ?? "Could not delete task.");
       }
     },
-    [tasks, workspaceId],
+    [removeMutation],
   );
 
-  const clearError = useCallback(() => setError(null), []);
+  const clearError = useCallback(() => setMutationError(null), []);
 
-  return { tasks, loading, error, addTask, toggleTask, removeTask, clearError };
+  const queryError = listQuery.error
+    ? (extractApiError(listQuery.error) ?? "Could not load private tasks.")
+    : null;
+
+  return {
+    tasks: listQuery.data ?? null,
+    loading: listQuery.isLoading,
+    error: mutationError ?? queryError,
+    addTask,
+    toggleTask,
+    removeTask,
+    clearError,
+  };
 };
