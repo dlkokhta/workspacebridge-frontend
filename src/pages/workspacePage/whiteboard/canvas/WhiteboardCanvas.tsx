@@ -11,7 +11,7 @@ import { WhiteboardSaveVersionDialog } from "../WhiteboardSaveVersionDialog";
 import { WhiteboardVersionHistoryModal } from "../WhiteboardVersionHistoryModal";
 import { decodeUserIdFromToken } from "../utils";
 import { WhiteboardToolbar } from "./WhiteboardToolbar";
-import { useWhiteboardSync } from "./hooks/useWhiteboardSync";
+import { useWhiteboardSync } from "./hooks/whiteboardSync/useWhiteboardSync";
 import { useCollaboratorCursors } from "./hooks/useCollaboratorCursors";
 
 interface WhiteboardCanvasProps {
