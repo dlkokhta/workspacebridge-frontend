@@ -13,7 +13,7 @@ import { WorkspaceSidebar } from "./components/WorkspaceSidebar";
 import { WorkspaceTopbar } from "./components/WorkspaceTopbar";
 import { WorkspaceTabBar } from "./components/WorkspaceTabBar";
 import { RemoveMemberModal } from "./components/RemoveMemberModal";
-import { MessagesTab } from "./tabs/MessagesTab";
+import { MessagesTab } from "./messages/MessagesTab";
 import { FilesTab } from "./files/FilesTab";
 import { WhiteboardTab } from "./whiteboard/WhiteboardTab";
 import { SharedLinksTab } from "./tabs/SharedLinksTab";

@@ -5,7 +5,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useWorkspaces } from "../../hooks/useWorkspaces";
 import { getInitials } from "../../utils/getInitials";
-import { MessagesTab } from "../workspacePage/tabs/MessagesTab";
+import { MessagesTab } from "../workspacePage/messages/MessagesTab";
 import { WhiteboardTab } from "../workspacePage/whiteboard/WhiteboardTab";
 import { FilesTab } from "../workspacePage/files/FilesTab";
 import { SharedLinksTab } from "../workspacePage/tabs/SharedLinksTab";
