@@ -5,75 +5,21 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { createPortal } from "react-dom";
-import {
-  Brain,
-  Calendar,
-  Columns3,
-  Database,
-  GitMerge,
-  Grid2x2,
-  LayoutDashboard,
-  type LucideIcon,
-  Network,
-  Palette,
-  RefreshCcw,
-  Square,
-  StickyNote,
-  Users,
-  Webhook,
-  Workflow,
-  X,
-} from "lucide-react";
-import {
-  TEMPLATE_CATEGORIES,
-  WHITEBOARD_TEMPLATES,
-  type WhiteboardTemplate,
-  type WhiteboardTemplateCategory,
-} from "./templates";
+import { X } from "lucide-react";
+import { WHITEBOARD_TEMPLATES, type WhiteboardTemplate } from "../templates";
+import { TemplateGrid } from "./TemplateGrid";
 
 interface TemplatePickerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (template: WhiteboardTemplate, name: string) => Promise<void> | void;
+  onCreate: (
+    template: WhiteboardTemplate,
+    name: string,
+  ) => Promise<void> | void;
   creating?: boolean;
 }
 
-const TEMPLATE_ICONS: Record<string, LucideIcon> = {
-  blank: Square,
-  brainstorm: Brain,
-  "sticky-notes": StickyNote,
-  "mood-board": Palette,
-  kanban: Columns3,
-  timeline: Calendar,
-  matrix: Grid2x2,
-  retro: RefreshCcw,
-  flowchart: Workflow,
-  "user-journey": Users,
-  wireframe: LayoutDashboard,
-  "system-architecture": Network,
-  "database-schema": Database,
-  "api-sequence": Webhook,
-  "state-machine": GitMerge,
-};
-
 const DEFAULT_NAME = "Untitled board";
-
-const groupByCategory = (): Record<
-  WhiteboardTemplateCategory,
-  WhiteboardTemplate[]
-> => {
-  const groups = {
-    "Quick start": [],
-    Ideation: [],
-    "Planning & tracking": [],
-    "Process & UX": [],
-    Developer: [],
-  } as Record<WhiteboardTemplateCategory, WhiteboardTemplate[]>;
-  for (const template of WHITEBOARD_TEMPLATES) {
-    groups[template.category].push(template);
-  }
-  return groups;
-};
 
 export const TemplatePickerModal = ({
   isOpen,
@@ -102,7 +48,6 @@ export const TemplatePickerModal = ({
   if (!isOpen) return null;
 
   const selected = WHITEBOARD_TEMPLATES.find((t) => t.id === selectedId);
-  const grouped = groupByCategory();
 
   const handleBackdropClick = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget && !creating) onClose();
@@ -147,49 +92,7 @@ export const TemplatePickerModal = ({
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4">
-          {TEMPLATE_CATEGORIES.map((category) => {
-            const items = grouped[category];
-            if (items.length === 0) return null;
-            return (
-              <section key={category} className="mb-5 last:mb-0">
-                <h3 className="mb-2 text-[11px] uppercase tracking-wider font-semibold text-[#858c87] dark:text-[#6e7672]">
-                  {category}
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                  {items.map((template) => {
-                    const Icon = TEMPLATE_ICONS[template.id] ?? Square;
-                    const isSelected = template.id === selectedId;
-                    return (
-                      <button
-                        key={template.id}
-                        onClick={() => setSelectedId(template.id)}
-                        className={`flex flex-col items-start gap-1.5 p-3 rounded-md border text-left transition-colors cursor-pointer ${
-                          isSelected
-                            ? "border-[#5a8a6b] bg-[#5a8a6b]/[0.08] dark:bg-[#5a8a6b]/[0.15]"
-                            : "border-black/[0.08] dark:border-white/[0.07] hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
-                        }`}
-                      >
-                        <Icon
-                          size={20}
-                          className={
-                            isSelected
-                              ? "text-[#5a8a6b]"
-                              : "text-[#5a625e] dark:text-[#a0a8a3]"
-                          }
-                        />
-                        <span className="text-[13px] font-medium text-[#1a201c] dark:text-[#fafaf7]">
-                          {template.name}
-                        </span>
-                        <span className="text-[11px] leading-snug text-[#858c87] dark:text-[#6e7672]">
-                          {template.description}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })}
+          <TemplateGrid selectedId={selectedId} onSelect={setSelectedId} />
         </div>
 
         <div className="flex items-center gap-3 px-6 py-4 border-t border-black/[0.06] dark:border-white/[0.05] bg-black/[0.015] dark:bg-white/[0.015]">

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import { TemplatePickerModal } from "./TemplatePickerModal";
+import { TemplatePickerModal } from "./templatePicker/TemplatePickerModal";
 import { BoardTabsBar } from "./boards/BoardTabsBar";
 import { DeleteBoardModal } from "./boards/DeleteBoardModal";
 import { useBoards, type BoardSummary } from "./boards/useBoards";
