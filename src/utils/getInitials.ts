@@ -1,4 +1,4 @@
-import type { UserProfile } from "../../../hooks/useCurrentUser";
+import type { UserProfile } from "../hooks/useCurrentUser";
 
 export const getInitials = (profile: UserProfile | null): string => {
   if (!profile) return "?";

@@ -8,7 +8,7 @@ import {
 import { Row } from "../components/Row";
 import { SectionHeader } from "../components/SectionHeader";
 import { SmallBtn } from "../components/SmallBtn";
-import { getInitials } from "../utils/getInitials";
+import { getInitials } from "../../../utils/getInitials";
 
 interface ProfileSectionProps {
   profile: UserProfile;

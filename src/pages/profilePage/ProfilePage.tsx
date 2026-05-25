@@ -10,7 +10,7 @@ import { WorkspaceSection } from "./sections/WorkspaceSection";
 import { NotificationsSection } from "./sections/NotificationsSection";
 import { BillingSection } from "./sections/BillingSection";
 import { SecuritySection } from "./sections/SecuritySection";
-import { getInitials } from "./utils/getInitials";
+import { getInitials } from "../../utils/getInitials";
 import type { Section } from "./types";
 
 export const ProfilePage = () => {
