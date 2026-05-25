@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import type { Socket } from "socket.io-client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../context/AuthContext";
 
 export interface CommentAuthor {
@@ -35,76 +36,79 @@ interface UseWhiteboardCommentsResult {
   deleteComment: (commentId: string) => Promise<void>;
 }
 
+const keys = {
+  list: (boardId: string) => ["whiteboard-comments", boardId] as const,
+};
+
 export const useWhiteboardComments = (
   boardId: string,
   socket: Socket | null,
 ): UseWhiteboardCommentsResult => {
-  const [comments, setComments] = useState<WhiteboardComment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const cancelRef = useRef(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    cancelRef.current = false;
-    setComments([]);
-    setError(null);
-    setLoading(true);
-
-    axiosInstance
-      .get<WhiteboardComment[]>(`/whiteboards/${boardId}/comments`)
-      .then(({ data }) => {
-        if (cancelRef.current) return;
-        setComments(data);
-      })
-      .catch(() => {
-        if (cancelRef.current) return;
-        setError("Could not load comments.");
-      })
-      .finally(() => {
-        if (cancelRef.current) return;
-        setLoading(false);
-      });
-
-    return () => {
-      cancelRef.current = true;
-    };
-  }, [boardId]);
-
-  const addComment = useCallback(
-    async (elementId: string, body: string) => {
-      const { data } = await axiosInstance.post<WhiteboardComment>(
+  const listQuery = useQuery({
+    queryKey: keys.list(boardId),
+    queryFn: async () => {
+      const { data } = await axiosInstance.get<WhiteboardComment[]>(
         `/whiteboards/${boardId}/comments`,
-        { elementId, body },
-      );
-      setComments((prev) =>
-        prev.some((c) => c.id === data.id) ? prev : [...prev, data],
       );
       return data;
     },
-    [boardId],
-  );
+  });
 
-  const deleteComment = useCallback(
-    async (commentId: string) => {
+  const addMutation = useMutation({
+    mutationFn: async (vars: { elementId: string; body: string }) => {
+      const { data } = await axiosInstance.post<WhiteboardComment>(
+        `/whiteboards/${boardId}/comments`,
+        { elementId: vars.elementId, body: vars.body },
+      );
+      return data;
+    },
+    onSuccess: (created) => {
+      queryClient.setQueryData<WhiteboardComment[]>(
+        keys.list(boardId),
+        (prev) =>
+          prev?.some((c) => c.id === created.id)
+            ? prev
+            : [...(prev ?? []), created],
+      );
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (commentId: string) => {
       await axiosInstance.delete(
         `/whiteboards/${boardId}/comments/${commentId}`,
       );
-      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      return commentId;
     },
-    [boardId],
-  );
+    onSuccess: (commentId) => {
+      queryClient.setQueryData<WhiteboardComment[]>(
+        keys.list(boardId),
+        (prev) => prev?.filter((c) => c.id !== commentId),
+      );
+    },
+  });
 
+  // Real-time sync: socket events write directly into the React Query cache.
   useEffect(() => {
     if (!socket) return;
     const onCreated = (comment: WhiteboardComment) => {
       if (comment.whiteboardId !== boardId) return;
-      setComments((prev) =>
-        prev.some((c) => c.id === comment.id) ? prev : [...prev, comment],
+      queryClient.setQueryData<WhiteboardComment[]>(
+        keys.list(boardId),
+        (prev) =>
+          prev?.some((c) => c.id === comment.id)
+            ? prev
+            : [...(prev ?? []), comment],
       );
     };
     const onDeleted = (payload: CommentDeletedPayload) => {
       if (payload.boardId !== boardId) return;
-      setComments((prev) => prev.filter((c) => c.id !== payload.id));
+      queryClient.setQueryData<WhiteboardComment[]>(
+        keys.list(boardId),
+        (prev) => prev?.filter((c) => c.id !== payload.id),
+      );
     };
     socket.on("commentCreated", onCreated);
     socket.on("commentDeleted", onDeleted);
@@ -112,7 +116,22 @@ export const useWhiteboardComments = (
       socket.off("commentCreated", onCreated);
       socket.off("commentDeleted", onDeleted);
     };
-  }, [socket, boardId]);
+  }, [socket, boardId, queryClient]);
+
+  const addComment = useCallback(
+    (elementId: string, body: string) =>
+      addMutation.mutateAsync({ elementId, body }),
+    [addMutation],
+  );
+
+  const deleteComment = useCallback(
+    async (commentId: string) => {
+      await deleteMutation.mutateAsync(commentId);
+    },
+    [deleteMutation],
+  );
+
+  const comments = listQuery.data ?? [];
 
   const commentsByElement = useMemo(() => {
     const map = new Map<string, WhiteboardComment[]>();
@@ -130,8 +149,8 @@ export const useWhiteboardComments = (
   return {
     comments,
     commentsByElement,
-    loading,
-    error,
+    loading: listQuery.isLoading,
+    error: listQuery.error ? "Could not load comments." : null,
     addComment,
     deleteComment,
   };

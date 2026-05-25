@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../context/AuthContext";
 
 export type WhiteboardVersionType = "MANUAL" | "AUTO";
@@ -52,44 +53,27 @@ interface UseWhiteboardVersionsResult {
   restoreVersion: (versionId: string) => Promise<RestoredBoard>;
 }
 
+const keys = {
+  list: (boardId: string) => ["whiteboard-versions", boardId] as const,
+};
+
 export const useWhiteboardVersions = (
   boardId: string,
 ): UseWhiteboardVersionsResult => {
-  const [versions, setVersions] = useState<WhiteboardVersionSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const cancelRef = useRef(false);
+  const queryClient = useQueryClient();
 
-  const fetchList = useCallback(async () => {
-    try {
+  const listQuery = useQuery({
+    queryKey: keys.list(boardId),
+    queryFn: async () => {
       const { data } = await axiosInstance.get<WhiteboardVersionSummary[]>(
         `/whiteboards/${boardId}/versions`,
       );
-      if (cancelRef.current) return;
-      setVersions(data);
-      setError(null);
-    } catch {
-      if (cancelRef.current) return;
-      setError("Could not load version history.");
-    } finally {
-      if (cancelRef.current) return;
-      setLoading(false);
-    }
-  }, [boardId]);
+      return data;
+    },
+  });
 
-  useEffect(() => {
-    cancelRef.current = false;
-    setVersions([]);
-    setError(null);
-    setLoading(true);
-    void fetchList();
-    return () => {
-      cancelRef.current = true;
-    };
-  }, [boardId, fetchList]);
-
-  const saveVersion = useCallback(
-    async (input: SaveVersionInput) => {
+  const saveMutation = useMutation({
+    mutationFn: async (input: SaveVersionInput) => {
       const { data } = await axiosInstance.post<WhiteboardVersionSummary>(
         `/whiteboards/${boardId}/versions`,
         {
@@ -99,12 +83,22 @@ export const useWhiteboardVersions = (
           files: input.files ?? undefined,
         },
       );
-      setVersions((prev) =>
-        prev.some((v) => v.id === data.id) ? prev : [data, ...prev],
-      );
       return data;
     },
-    [boardId],
+    onSuccess: (created) => {
+      queryClient.setQueryData<WhiteboardVersionSummary[]>(
+        keys.list(boardId),
+        (prev) =>
+          prev?.some((v) => v.id === created.id)
+            ? prev
+            : [created, ...(prev ?? [])],
+      );
+    },
+  });
+
+  const saveVersion = useCallback(
+    (input: SaveVersionInput) => saveMutation.mutateAsync(input),
+    [saveMutation],
   );
 
   const getVersion = useCallback(
@@ -122,17 +116,22 @@ export const useWhiteboardVersions = (
       const { data } = await axiosInstance.post<RestoredBoard>(
         `/whiteboards/${boardId}/versions/${versionId}/restore`,
       );
-      await fetchList();
+      // Restore creates a new AUTO version on the server, so refresh the list.
+      await queryClient.invalidateQueries({ queryKey: keys.list(boardId) });
       return data;
     },
-    [boardId, fetchList],
+    [boardId, queryClient],
   );
 
+  const reload = useCallback(async () => {
+    await listQuery.refetch();
+  }, [listQuery]);
+
   return {
-    versions,
-    loading,
-    error,
-    reload: fetchList,
+    versions: listQuery.data ?? [],
+    loading: listQuery.isLoading,
+    error: listQuery.error ? "Could not load version history." : null,
+    reload,
     saveVersion,
     getVersion,
     restoreVersion,
