@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RegistrationSuccess } from "../../components/RegistrationSuccess.js";
 import { useTheme } from "../../context/ThemeContext";
+import { AuthFooter } from "../../components/auth/AuthFooter";
+import { AuthHeader } from "../../components/auth/AuthHeader";
+import { SocialAuthButtons } from "../../components/auth/SocialAuthButtons";
 import { AppSidePreview } from "./components/AppSidePreview";
-import { AuthFooter } from "./components/AuthFooter";
-import { AuthHeader } from "./components/AuthHeader";
-import { SocialSignUp } from "./components/SocialSignUp";
 import { RegistrationForm } from "./sections/RegistrationForm";
 
 export const RegistrationPage = () => {
@@ -45,7 +45,12 @@ export const RegistrationPage = () => {
             Free forever. No credit card needed.
           </p>
 
-          <SocialSignUp onGoogle={handleGoogle} />
+          <SocialAuthButtons
+            onGoogle={handleGoogle}
+            googleLabel="Sign up with Google"
+            githubLabel="Sign up with GitHub"
+            dividerLabel="Or use your email"
+          />
 
           <RegistrationForm onSuccess={setResponseMessage} />
 

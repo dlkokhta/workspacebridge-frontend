@@ -25,11 +25,19 @@ const GithubIcon = () => (
   </svg>
 );
 
-interface SocialSignUpProps {
+interface SocialAuthButtonsProps {
   onGoogle: () => void;
+  googleLabel: string;
+  githubLabel: string;
+  dividerLabel: string;
 }
 
-export const SocialSignUp = ({ onGoogle }: SocialSignUpProps) => (
+export const SocialAuthButtons = ({
+  onGoogle,
+  googleLabel,
+  githubLabel,
+  dividerLabel,
+}: SocialAuthButtonsProps) => (
   <>
     <div className="flex flex-col gap-2 mb-6">
       <button
@@ -38,7 +46,7 @@ export const SocialSignUp = ({ onGoogle }: SocialSignUpProps) => (
         className="flex items-center justify-center gap-2 h-[42px] px-4 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[13px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] hover:border-black/[0.14] dark:hover:border-white/[0.14] transition-colors cursor-pointer"
       >
         <GoogleIcon />
-        Sign up with Google
+        {googleLabel}
       </button>
       <button
         type="button"
@@ -47,13 +55,13 @@ export const SocialSignUp = ({ onGoogle }: SocialSignUpProps) => (
         title="Coming soon"
       >
         <GithubIcon />
-        Sign up with GitHub
+        {githubLabel}
       </button>
     </div>
 
     <div className="flex items-center gap-3 mb-6 text-[#858c87] dark:text-[#6e7672] text-[12px] uppercase tracking-[0.08em]">
       <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.05]" />
-      Or use your email
+      {dividerLabel}
       <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.05]" />
     </div>
   </>
