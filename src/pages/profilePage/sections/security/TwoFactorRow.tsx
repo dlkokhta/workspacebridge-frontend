@@ -7,6 +7,7 @@ import {
   type UserProfile,
 } from "../../../../hooks/useCurrentUser";
 import { SmallBtn } from "../../components/SmallBtn";
+import { DisableTwoFactorForm } from "./DisableTwoFactorForm";
 import { VerifyCodeForm } from "./VerifyCodeForm";
 
 interface TwoFactorRowProps {
@@ -23,6 +24,7 @@ export const TwoFactorRow = ({ profile, onSuccess }: TwoFactorRowProps) => {
   const [setupMode, setSetupMode] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const generateMutation = useMutation({
@@ -46,8 +48,8 @@ export const TwoFactorRow = ({ profile, onSuccess }: TwoFactorRowProps) => {
   });
 
   const disableMutation = useMutation({
-    mutationFn: async (verifyCode: string) => {
-      await axiosInstance.post("/auth/2fa/disable", { code: verifyCode });
+    mutationFn: async (vars: { code: string; password: string }) => {
+      await axiosInstance.post("/auth/2fa/disable", vars);
     },
     onSuccess: () => {
       queryClient.setQueryData<UserProfile>(currentUserKey, (prev) =>
@@ -88,11 +90,13 @@ export const TwoFactorRow = ({ profile, onSuccess }: TwoFactorRowProps) => {
     e.preventDefault();
     setError(null);
     try {
-      await disableMutation.mutateAsync(code);
+      await disableMutation.mutateAsync({ code, password });
       resetSetup();
       onSuccess("2FA has been disabled.");
     } catch (err: unknown) {
-      setError(extractApiMessage(err) ?? "Invalid code. Please try again.");
+      setError(
+        extractApiMessage(err) ?? "Invalid password or code. Please try again.",
+      );
     }
   };
 
@@ -100,6 +104,7 @@ export const TwoFactorRow = ({ profile, onSuccess }: TwoFactorRowProps) => {
     setSetupMode(false);
     setQrCode(null);
     setCode("");
+    setPassword("");
     setError(null);
   };
 
@@ -166,17 +171,15 @@ export const TwoFactorRow = ({ profile, onSuccess }: TwoFactorRowProps) => {
       )}
 
       {setupMode && profile.isTwoFactorEnabled && (
-        <VerifyCodeForm
-          variant="disable"
+        <DisableTwoFactorForm
           code={code}
+          password={password}
           onCodeChange={setCode}
+          onPasswordChange={setPassword}
           onSubmit={handleDisable}
           onCancel={resetSetup}
           loading={loading}
           error={error}
-          prompt="Enter the 6-digit code from your authenticator app to disable 2FA."
-          submitLabel="Confirm disable"
-          loadingLabel="Disabling…"
         />
       )}
     </div>
