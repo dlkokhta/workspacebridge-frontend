@@ -4,6 +4,7 @@ import { useAdminFiles } from "../../../hooks/useAdminFiles";
 import { StatCard } from "./StatCard";
 import { SearchInput } from "./SearchInput";
 import { FilterSelect } from "./FilterSelect";
+import { Pagination, usePagination } from "./Pagination";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
@@ -22,6 +23,7 @@ export const FilesTable = () => {
   const { files, stats, deletingId, deleteFile } = useAdminFiles();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
 
   const fmt = (d: string) =>
     new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -35,6 +37,12 @@ export const FilesTable = () => {
       return true;
     });
   }, [files, search, statusFilter]);
+
+  const { totalPages, paginate } = usePagination(filtered, 10);
+  const paged = paginate(page);
+
+  const updateSearch = (v: string) => { setSearch(v); setPage(1); };
+  const updateStatusFilter = (v: string) => { setStatusFilter(v); setPage(1); };
 
   return (
     <>
@@ -52,8 +60,8 @@ export const FilesTable = () => {
             {filtered.length} of {files.length} file{files.length !== 1 && "s"}
           </p>
           <div className="flex flex-wrap items-center gap-2 mt-3">
-            <SearchInput value={search} onChange={setSearch} placeholder="Search by name or workspace…" />
-            <FilterSelect value={statusFilter} onChange={setStatusFilter} options={STATUS_OPTIONS} />
+            <SearchInput value={search} onChange={updateSearch} placeholder="Search by name or workspace…" />
+            <FilterSelect value={statusFilter} onChange={updateStatusFilter} options={STATUS_OPTIONS} />
           </div>
         </div>
 
@@ -68,7 +76,7 @@ export const FilesTable = () => {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((file) => (
+              {paged.map((file) => (
                 <tr key={file.id} className="border-b border-black/[0.04] dark:border-white/[0.04] last:border-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                   <td className="px-5 py-3 text-[13px] text-[#1a201c] dark:text-[#e8ece9] max-w-[200px] truncate">{file.name}</td>
                   <td className="px-5 py-3 text-[13px] text-[#1a201c] dark:text-[#e8ece9]">{file.workspace.name}</td>
@@ -97,6 +105,8 @@ export const FilesTable = () => {
             </tbody>
           </table>
         </div>
+
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
         {filtered.length === 0 && (
           <p className="text-center py-10 text-[13px] text-[#858c87] dark:text-[#6e7672]">No files found.</p>

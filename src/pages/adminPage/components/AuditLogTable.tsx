@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useAdminAuditLog } from "../../../hooks/useAdminAuditLog";
 import { SearchInput } from "./SearchInput";
 import { FilterSelect } from "./FilterSelect";
+import { Pagination, usePagination } from "./Pagination";
 
 const ACTION_LABELS: Record<string, string> = {
   "user.role_change": "Role changed",
@@ -46,6 +47,7 @@ export const AuditLogTable = () => {
   const { data: entries, isLoading } = useAdminAuditLog();
   const [search, setSearch] = useState("");
   const [targetFilter, setTargetFilter] = useState("");
+  const [page, setPage] = useState(1);
 
   const fmtFull = (d: string) =>
     new Date(d).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -64,6 +66,12 @@ export const AuditLogTable = () => {
     });
   }, [entries, search, targetFilter]);
 
+  const { totalPages, paginate } = usePagination(filtered, 15);
+  const paged = paginate(page);
+
+  const updateSearch = (v: string) => { setSearch(v); setPage(1); };
+  const updateTarget = (v: string) => { setTargetFilter(v); setPage(1); };
+
   return (
     <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden">
       <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.05]">
@@ -72,8 +80,8 @@ export const AuditLogTable = () => {
           {filtered.length} entr{filtered.length === 1 ? "y" : "ies"}
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-3">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search actions or details…" />
-          <FilterSelect value={targetFilter} onChange={setTargetFilter} options={TARGET_OPTIONS} />
+          <SearchInput value={search} onChange={updateSearch} placeholder="Search actions or details…" />
+          <FilterSelect value={targetFilter} onChange={updateTarget} options={TARGET_OPTIONS} />
         </div>
       </div>
 
@@ -83,7 +91,7 @@ export const AuditLogTable = () => {
         </div>
       )}
 
-      {filtered.length > 0 && (
+      {paged.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -94,7 +102,7 @@ export const AuditLogTable = () => {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((entry) => {
+              {paged.map((entry) => {
                 const meta = formatMeta(entry.metadata);
                 return (
                   <tr key={entry.id} className="border-b border-black/[0.04] dark:border-white/[0.04] last:border-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
@@ -114,6 +122,8 @@ export const AuditLogTable = () => {
           </table>
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {!isLoading && filtered.length === 0 && (
         <p className="text-center py-10 text-[13px] text-[#858c87] dark:text-[#6e7672]">No audit log entries found.</p>

@@ -4,6 +4,7 @@ import type { AdminUser } from "../../../hooks/useAdminUsers";
 import { getRoleBadgeClass } from "../utils/badgeClasses";
 import { SearchInput } from "./SearchInput";
 import { FilterSelect } from "./FilterSelect";
+import { Pagination, usePagination } from "./Pagination";
 
 interface UsersTableProps {
   users: AdminUser[];
@@ -38,6 +39,7 @@ export const UsersTable = ({
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [verifiedFilter, setVerifiedFilter] = useState("");
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -49,6 +51,13 @@ export const UsersTable = ({
     });
   }, [users, search, roleFilter, verifiedFilter]);
 
+  const { totalPages, paginate } = usePagination(filtered, 10);
+  const paged = paginate(page);
+
+  const updateSearch = (v: string) => { setSearch(v); setPage(1); };
+  const updateRole = (v: string) => { setRoleFilter(v); setPage(1); };
+  const updateVerified = (v: string) => { setVerifiedFilter(v); setPage(1); };
+
   return (
     <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden">
       <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.05]">
@@ -57,9 +66,9 @@ export const UsersTable = ({
           {filtered.length} of {users.length} user{users.length !== 1 && "s"}
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-3">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search by email or name…" />
-          <FilterSelect value={roleFilter} onChange={setRoleFilter} options={ROLE_OPTIONS} />
-          <FilterSelect value={verifiedFilter} onChange={setVerifiedFilter} options={VERIFIED_OPTIONS} />
+          <SearchInput value={search} onChange={updateSearch} placeholder="Search by email or name…" />
+          <FilterSelect value={roleFilter} onChange={updateRole} options={ROLE_OPTIONS} />
+          <FilterSelect value={verifiedFilter} onChange={updateVerified} options={VERIFIED_OPTIONS} />
         </div>
       </div>
 
@@ -79,7 +88,7 @@ export const UsersTable = ({
             </tr>
           </thead>
           <tbody>
-            {filtered.map((user) => (
+            {paged.map((user) => (
               <tr
                 key={user.id}
                 onClick={() => onRowClick(user.id)}
@@ -141,6 +150,8 @@ export const UsersTable = ({
           </tbody>
         </table>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {filtered.length === 0 && (
         <p className="text-center py-10 text-[13px] text-[#858c87] dark:text-[#6e7672]">

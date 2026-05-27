@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useAdminInvites } from "../../../hooks/useAdminInvites";
 import { SearchInput } from "./SearchInput";
 import { FilterSelect } from "./FilterSelect";
+import { Pagination, usePagination } from "./Pagination";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All statuses" },
@@ -27,6 +28,7 @@ export const InvitesTable = () => {
   const { invites, revokingId, revokeInvite } = useAdminInvites();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
 
   const fmt = (d: string) =>
     new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -40,6 +42,12 @@ export const InvitesTable = () => {
     });
   }, [invites, search, statusFilter]);
 
+  const { totalPages, paginate } = usePagination(filtered, 10);
+  const paged = paginate(page);
+
+  const updateSearch = (v: string) => { setSearch(v); setPage(1); };
+  const updateStatusFilter = (v: string) => { setStatusFilter(v); setPage(1); };
+
   return (
     <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden">
       <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.05]">
@@ -48,8 +56,8 @@ export const InvitesTable = () => {
           {filtered.length} of {invites.length} invite{invites.length !== 1 && "s"}
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-3">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search by email or workspace…" />
-          <FilterSelect value={statusFilter} onChange={setStatusFilter} options={STATUS_OPTIONS} />
+          <SearchInput value={search} onChange={updateSearch} placeholder="Search by email or workspace…" />
+          <FilterSelect value={statusFilter} onChange={updateStatusFilter} options={STATUS_OPTIONS} />
         </div>
       </div>
 
@@ -64,7 +72,7 @@ export const InvitesTable = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((inv) => {
+            {paged.map((inv) => {
               const status = getStatus(inv);
               return (
                 <tr key={inv.id} className="border-b border-black/[0.04] dark:border-white/[0.04] last:border-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
@@ -95,6 +103,8 @@ export const InvitesTable = () => {
           </tbody>
         </table>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {filtered.length === 0 && (
         <p className="text-center py-10 text-[13px] text-[#858c87] dark:text-[#6e7672]">No invites found.</p>

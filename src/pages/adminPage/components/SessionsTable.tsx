@@ -2,10 +2,12 @@ import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { useAdminSessions } from "../../../hooks/useAdminSessions";
 import { SearchInput } from "./SearchInput";
+import { Pagination, usePagination } from "./Pagination";
 
 export const SessionsTable = () => {
   const { sessions, revokingId, revokeSession } = useAdminSessions();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   const fmtFull = (d: string) =>
     new Date(d).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
@@ -22,6 +24,11 @@ export const SessionsTable = () => {
     );
   }, [sessions, search]);
 
+  const { totalPages, paginate } = usePagination(filtered, 10);
+  const paged = paginate(page);
+
+  const updateSearch = (v: string) => { setSearch(v); setPage(1); };
+
   return (
     <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden">
       <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.05]">
@@ -30,7 +37,7 @@ export const SessionsTable = () => {
           {filtered.length} of {sessions.length} session{sessions.length !== 1 && "s"}
         </p>
         <div className="mt-3">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search by user or IP…" />
+          <SearchInput value={search} onChange={updateSearch} placeholder="Search by user or IP…" />
         </div>
       </div>
 
@@ -45,7 +52,7 @@ export const SessionsTable = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((s) => (
+            {paged.map((s) => (
               <tr key={s.id} className="border-b border-black/[0.04] dark:border-white/[0.04] last:border-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                 <td className="px-5 py-3">
                   <div className="text-[13px] text-[#1a201c] dark:text-[#e8ece9]">
@@ -71,6 +78,8 @@ export const SessionsTable = () => {
           </tbody>
         </table>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {filtered.length === 0 && (
         <p className="text-center py-10 text-[13px] text-[#858c87] dark:text-[#6e7672]">No sessions found.</p>

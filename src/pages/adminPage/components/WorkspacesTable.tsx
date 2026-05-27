@@ -4,6 +4,7 @@ import type { AdminWorkspace } from "../../../hooks/useAdminWorkspaces";
 import { getStatusBadgeClass } from "../utils/badgeClasses";
 import { SearchInput } from "./SearchInput";
 import { FilterSelect } from "./FilterSelect";
+import { Pagination, usePagination } from "./Pagination";
 
 interface WorkspacesTableProps {
   workspaces: AdminWorkspace[];
@@ -29,6 +30,7 @@ export const WorkspacesTable = ({
 }: WorkspacesTableProps) => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -39,6 +41,12 @@ export const WorkspacesTable = ({
     });
   }, [workspaces, search, statusFilter]);
 
+  const { totalPages, paginate } = usePagination(filtered, 10);
+  const paged = paginate(page);
+
+  const updateSearch = (v: string) => { setSearch(v); setPage(1); };
+  const updateStatus = (v: string) => { setStatusFilter(v); setPage(1); };
+
   return (
     <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden">
       <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.05]">
@@ -47,8 +55,8 @@ export const WorkspacesTable = ({
           {filtered.length} of {workspaces.length} workspace{workspaces.length !== 1 && "s"}
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-3">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search by name or owner…" />
-          <FilterSelect value={statusFilter} onChange={setStatusFilter} options={STATUS_OPTIONS} />
+          <SearchInput value={search} onChange={updateSearch} placeholder="Search by name or owner…" />
+          <FilterSelect value={statusFilter} onChange={updateStatus} options={STATUS_OPTIONS} />
         </div>
       </div>
 
@@ -63,7 +71,7 @@ export const WorkspacesTable = ({
             </tr>
           </thead>
           <tbody>
-            {filtered.map((ws) => (
+            {paged.map((ws) => (
               <tr key={ws.id} className="border-b border-black/[0.04] dark:border-white/[0.04] last:border-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-2.5">
@@ -106,6 +114,8 @@ export const WorkspacesTable = ({
           </tbody>
         </table>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {filtered.length === 0 && (
         <p className="text-center py-10 text-[13px] text-[#858c87] dark:text-[#6e7672]">No workspaces found.</p>
