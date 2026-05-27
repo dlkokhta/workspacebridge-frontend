@@ -5,12 +5,16 @@ import { MemoryRouter } from 'react-router-dom';
 import axios from 'axios';
 import { LoginPage } from '../pages/loginPage/LoginPage';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 vi.mock('axios');
 const mockedAxios = vi.mocked(axios, true);
 
 vi.mock('../context/AuthContext');
 const mockedUseAuth = vi.mocked(useAuth);
+
+vi.mock('../context/ThemeContext');
+const mockedUseTheme = vi.mocked(useTheme);
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -26,6 +30,10 @@ function renderLoginPage() {
     setAccessToken: mockSetAccessToken,
     isLoading: false,
   });
+  mockedUseTheme.mockReturnValue({
+    theme: 'light',
+    toggleTheme: vi.fn(),
+  });
   return render(
     <MemoryRouter>
       <LoginPage />
@@ -40,14 +48,14 @@ describe('LoginPage', () => {
 
   it('renders email and password fields and a submit button', () => {
     renderLoginPage();
-    expect(screen.getByPlaceholderText('Enter your email')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter your password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^submit$/i })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('you@studio.com')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
   it('shows validation errors when submitting empty form', async () => {
     renderLoginPage();
-    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/email must be a valid email/i)).toBeInTheDocument();
@@ -60,9 +68,9 @@ describe('LoginPage', () => {
     });
 
     renderLoginPage();
-    await userEvent.type(screen.getByPlaceholderText('Enter your email'), 'john@example.com');
-    await userEvent.type(screen.getByPlaceholderText('Enter your password'), 'Password1!');
-    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    await userEvent.type(screen.getByPlaceholderText('you@studio.com'), 'john@example.com');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'Password1!');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
       expect(
@@ -71,22 +79,22 @@ describe('LoginPage', () => {
     });
   });
 
-  it('stores the token and navigates to /profile for regular users', async () => {
+  it('stores the token and navigates to /dashboard for freelancer users', async () => {
     mockedAxios.post.mockResolvedValueOnce({
       data: {
         accessToken: 'access-token-123',
-        user: { role: 'USER' },
+        user: { role: 'FREELANCER' },
       },
     });
 
     renderLoginPage();
-    await userEvent.type(screen.getByPlaceholderText('Enter your email'), 'john@example.com');
-    await userEvent.type(screen.getByPlaceholderText('Enter your password'), 'Password1!');
-    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    await userEvent.type(screen.getByPlaceholderText('you@studio.com'), 'john@example.com');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'Password1!');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
       expect(mockSetAccessToken).toHaveBeenCalledWith('access-token-123');
-      expect(mockNavigate).toHaveBeenCalledWith('/profile');
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
   });
 
@@ -99,9 +107,9 @@ describe('LoginPage', () => {
     });
 
     renderLoginPage();
-    await userEvent.type(screen.getByPlaceholderText('Enter your email'), 'admin@example.com');
-    await userEvent.type(screen.getByPlaceholderText('Enter your password'), 'Password1!');
-    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    await userEvent.type(screen.getByPlaceholderText('you@studio.com'), 'admin@example.com');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'Password1!');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/adminPanel');
