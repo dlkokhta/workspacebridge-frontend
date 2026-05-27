@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   BarChart3,
   Users,
@@ -7,6 +8,7 @@ import {
   FileText,
   ScrollText,
   Settings,
+  ArrowLeft,
   LogOut,
   Moon,
   Sun,
@@ -86,6 +88,15 @@ export const AdminSidebar = ({
     </div>
 
     <div className="px-3 py-3 border-t border-black/[0.06] dark:border-white/[0.05]">
+      <Link
+        to="/dashboard"
+        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-[#5a8a6b] dark:text-[#6db383] hover:bg-[#5a8a6b]/5 transition-colors mb-0.5"
+      >
+        <span className="w-[22px] h-[22px] rounded-md flex items-center justify-center shrink-0">
+          <ArrowLeft size={14} />
+        </span>
+        Back to app
+      </Link>
       <button
         onClick={onToggleTheme}
         className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] hover:text-[#1a201c] dark:hover:text-[#e8ece9] transition-colors cursor-pointer mb-0.5"

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
-import { LayoutDashboard, LogOut, Plus, Search, Settings } from "lucide-react";
+import { LayoutDashboard, LogOut, Plus, Search, Settings, ShieldCheck } from "lucide-react";
 import { axiosInstance, useAuth } from "../context/AuthContext";
 import { useCurrentUser, type UserProfile } from "../hooks/useCurrentUser";
 import { useWorkspaces, type Workspace } from "../hooks/useWorkspaces";
@@ -166,6 +166,17 @@ export const AppShell = () => {
             </span>
             <span className="font-medium">Settings</span>
           </Link>
+          {profile?.role === "ADMIN" && (
+            <Link
+              to="/adminPanel"
+              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-[#9b7abf] dark:text-[#b89adb] hover:bg-[#9b7abf]/5 transition-colors mb-0.5"
+            >
+              <span className="w-[22px] h-[22px] rounded-md flex items-center justify-center bg-[#9b7abf]/10 text-[#9b7abf] dark:text-[#b89adb] shrink-0">
+                <ShieldCheck size={12} />
+              </span>
+              <span className="font-medium">Admin Panel</span>
+            </Link>
+          )}
 
           <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px]">
             <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center bg-[#5a8a6b] text-white text-[10px] font-semibold shrink-0">
