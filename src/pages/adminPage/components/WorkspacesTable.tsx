@@ -17,7 +17,7 @@ export const WorkspacesTable = ({
   onStatusChange,
   onDeleteClick,
 }: WorkspacesTableProps) => (
-  <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden mt-6">
+  <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden">
     <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.05]">
       <h3 className="text-[14px] font-semibold text-[#1a201c] dark:text-[#e8ece9]">Workspaces</h3>
       <p className="text-[12px] text-[#858c87] dark:text-[#6e7672] mt-0.5">
