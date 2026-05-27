@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const tokenRef = useRef<string | null>(null);
+  const refreshPromiseRef = useRef<Promise<string | null> | null>(null);
 
   const setAccessToken = (token: string | null) => {
     tokenRef.current = token;
@@ -46,18 +47,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
           try {
-            const res = await axios.post(
-              `${BASE_URL}/auth/refresh`,
-              {},
-              { withCredentials: true }
-            );
-            const newToken = res.data.accessToken;
-            setAccessToken(newToken);
+            if (!refreshPromiseRef.current) {
+              refreshPromiseRef.current = axios
+                .post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+                .then((res) => {
+                  const newToken: string = res.data.accessToken;
+                  setAccessToken(newToken);
+                  return newToken;
+                })
+                .catch((refreshError) => {
+                  setAccessToken(null);
+                  window.location.href = "/login";
+                  throw refreshError;
+                })
+                .finally(() => {
+                  refreshPromiseRef.current = null;
+                });
+            }
+            const newToken = await refreshPromiseRef.current;
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return axiosInstance(originalRequest);
           } catch {
-            setAccessToken(null);
-            window.location.href = "/login";
             return Promise.reject(error);
           }
         }
