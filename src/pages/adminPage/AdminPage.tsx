@@ -10,6 +10,7 @@ import { InvitesTable } from "./components/InvitesTable";
 import { SessionsTable } from "./components/SessionsTable";
 import { FilesTable } from "./components/FilesTable";
 import { AuditLogTable } from "./components/AuditLogTable";
+import { SettingsTab } from "./components/SettingsTab";
 
 const TAB_TITLES: Record<AdminTab, string> = {
   overview: "Overview",
@@ -19,6 +20,7 @@ const TAB_TITLES: Record<AdminTab, string> = {
   sessions: "Sessions",
   files: "Files",
   "audit-log": "Audit Log",
+  settings: "Settings",
 };
 
 export const AdminPage = () => {
@@ -84,6 +86,7 @@ export const AdminPage = () => {
             {activeTab === "sessions" && <SessionsTable />}
             {activeTab === "files" && <FilesTable />}
             {activeTab === "audit-log" && <AuditLogTable />}
+            {activeTab === "settings" && <SettingsTab />}
           </div>
         </div>
       </div>

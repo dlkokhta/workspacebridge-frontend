@@ -6,6 +6,7 @@ import {
   Monitor,
   FileText,
   ScrollText,
+  Settings,
   LogOut,
   Moon,
   Sun,
@@ -18,7 +19,8 @@ export type AdminTab =
   | "invites"
   | "sessions"
   | "files"
-  | "audit-log";
+  | "audit-log"
+  | "settings";
 
 const TABS: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
   { id: "overview", label: "Overview", icon: <BarChart3 size={14} /> },
@@ -28,6 +30,7 @@ const TABS: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
   { id: "sessions", label: "Sessions", icon: <Monitor size={14} /> },
   { id: "files", label: "Files", icon: <FileText size={14} /> },
   { id: "audit-log", label: "Audit Log", icon: <ScrollText size={14} /> },
+  { id: "settings", label: "Settings", icon: <Settings size={14} /> },
 ];
 
 interface AdminSidebarProps {
