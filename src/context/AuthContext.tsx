@@ -6,6 +6,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
+  headers: { "X-Requested-With": "XMLHttpRequest" },
 });
 
 interface AuthContextType {
@@ -49,7 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           try {
             if (!refreshPromiseRef.current) {
               refreshPromiseRef.current = axios
-                .post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+                .post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true, headers: { "X-Requested-With": "XMLHttpRequest" } })
                 .then((res) => {
                   const newToken: string = res.data.accessToken;
                   setAccessToken(newToken);
@@ -84,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Initial refresh on page load
   useEffect(() => {
     axios
-      .post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+      .post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true, headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then((res) => setAccessToken(res.data.accessToken))
       .catch(() => {})
       .finally(() => setIsLoading(false));
