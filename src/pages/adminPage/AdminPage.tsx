@@ -24,6 +24,8 @@ import { StatCard } from "./components/StatCard";
 import { ActivityChart } from "./components/ActivityChart";
 import { UsersTable } from "./components/UsersTable";
 import { WorkspacesTable } from "./components/WorkspacesTable";
+import { InvitesTable } from "./components/InvitesTable";
+import { SessionsTable } from "./components/SessionsTable";
 
 export const AdminPage = () => {
   const navigate = useNavigate();
@@ -210,6 +212,10 @@ export const AdminPage = () => {
           onStatusChange={handleStatusChange}
           onDeleteClick={setConfirmingWorkspace}
         />
+
+        <InvitesTable />
+
+        <SessionsTable />
       </div>
 
       {selectedUserId && (
