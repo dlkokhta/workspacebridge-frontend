@@ -19,6 +19,7 @@ import {
   useAdminWorkspaces,
   type AdminWorkspace,
 } from "../../hooks/useAdminWorkspaces";
+import { UserDetailDrawer } from "./components/UserDetailDrawer";
 
 export const AdminPage = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ export const AdminPage = () => {
   const [confirmingUser, setConfirmingUser] = useState<AdminUser | null>(null);
   const [confirmingWorkspace, setConfirmingWorkspace] =
     useState<AdminWorkspace | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (error) navigate("/login");
@@ -293,7 +295,8 @@ export const AdminPage = () => {
                 {users.map((user) => (
                   <tr
                     key={user.id}
-                    className="border-b border-black/[0.04] dark:border-white/[0.04] last:border-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                    onClick={() => setSelectedUserId(user.id)}
+                    className="border-b border-black/[0.04] dark:border-white/[0.04] last:border-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
                   >
                     <td className="px-5 py-3 text-[13px] text-[#1a201c] dark:text-[#e8ece9]">
                       {user.email}
@@ -303,7 +306,7 @@ export const AdminPage = () => {
                         ? `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim()
                         : <span className="text-[#b5bbb7] dark:text-[#4a514d]">—</span>}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                       <select
                         value={user.role}
                         disabled={updatingRoleId === user.id}
@@ -336,7 +339,7 @@ export const AdminPage = () => {
                         year: "numeric",
                       })}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => setConfirmingUser(user)}
                         disabled={deletingUserId === user.id}
@@ -476,6 +479,14 @@ export const AdminPage = () => {
           )}
         </div>
       </div>
+
+      {/* User detail drawer */}
+      {selectedUserId && (
+        <UserDetailDrawer
+          userId={selectedUserId}
+          onClose={() => setSelectedUserId(null)}
+        />
+      )}
     </div>
   );
 };
