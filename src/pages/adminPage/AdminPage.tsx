@@ -15,6 +15,10 @@ import { useAuth, axiosInstance } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useAdminUsers, type AdminUser } from "../../hooks/useAdminUsers";
 import { useAdminStats } from "../../hooks/useAdminStats";
+import {
+  useAdminWorkspaces,
+  type AdminWorkspace,
+} from "../../hooks/useAdminWorkspaces";
 
 export const AdminPage = () => {
   const navigate = useNavigate();
@@ -26,12 +30,21 @@ export const AdminPage = () => {
     updateRole,
     deleteUser,
     updatingRoleId,
-    deletingId,
+    deletingId: deletingUserId,
   } = useAdminUsers();
   const statsQuery = useAdminStats();
   const stats = statsQuery.data;
+  const {
+    workspaces: adminWorkspaces,
+    updateStatus,
+    deleteWorkspace,
+    updatingStatusId,
+    deletingId: deletingWorkspaceId,
+  } = useAdminWorkspaces();
 
   const [confirmingUser, setConfirmingUser] = useState<AdminUser | null>(null);
+  const [confirmingWorkspace, setConfirmingWorkspace] =
+    useState<AdminWorkspace | null>(null);
 
   useEffect(() => {
     if (error) navigate("/login");
@@ -60,6 +73,18 @@ export const AdminPage = () => {
     void deleteUser(id);
   };
 
+  const handleStatusChange = (ws: AdminWorkspace, newStatus: string) => {
+    if (ws.status === newStatus) return;
+    void updateStatus(ws.id, newStatus);
+  };
+
+  const handleConfirmDeleteWorkspace = () => {
+    if (!confirmingWorkspace) return;
+    const id = confirmingWorkspace.id;
+    setConfirmingWorkspace(null);
+    void deleteWorkspace(id);
+  };
+
   return (
     <div className="min-h-screen bg-[#fafaf7] dark:bg-[#0e1310]">
       {/* Delete confirmation modal */}
@@ -85,6 +110,39 @@ export const AdminPage = () => {
               </button>
               <button
                 onClick={() => setConfirmingUser(null)}
+                className="h-8 px-3.5 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] text-[12px] font-medium hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Workspace delete confirmation modal */}
+      {confirmingWorkspace && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60">
+          <div className="w-full max-w-sm mx-4 rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] p-6 shadow-lg">
+            <h2 className="text-[15px] font-semibold text-[#1a201c] dark:text-[#e8ece9] mb-2">
+              Delete Workspace
+            </h2>
+            <p className="text-[13px] text-[#858c87] dark:text-[#6e7672] mb-5">
+              Are you sure you want to delete{" "}
+              <span className="font-medium text-[#1a201c] dark:text-[#e8ece9]">
+                {confirmingWorkspace.name}
+              </span>
+              ? All messages, files, and members will be removed. This cannot be
+              undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleConfirmDeleteWorkspace}
+                className="h-8 px-3.5 rounded-lg bg-[#c25a4a] hover:bg-[#b04a3a] text-white text-[12px] font-medium transition-colors cursor-pointer"
+              >
+                Yes, delete
+              </button>
+              <button
+                onClick={() => setConfirmingWorkspace(null)}
                 className="h-8 px-3.5 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] text-[12px] font-medium hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
               >
                 Cancel
@@ -281,7 +339,7 @@ export const AdminPage = () => {
                     <td className="px-5 py-3">
                       <button
                         onClick={() => setConfirmingUser(user)}
-                        disabled={deletingId === user.id}
+                        disabled={deletingUserId === user.id}
                         className="w-7 h-7 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-[#c25a4a]/10 hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Delete user"
                       >
@@ -300,10 +358,140 @@ export const AdminPage = () => {
             </p>
           )}
         </div>
+
+        {/* Workspaces table */}
+        <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden mt-6">
+          <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.05]">
+            <h3 className="text-[14px] font-semibold text-[#1a201c] dark:text-[#e8ece9]">
+              Workspaces
+            </h3>
+            <p className="text-[12px] text-[#858c87] dark:text-[#6e7672] mt-0.5">
+              {adminWorkspaces.length} workspace
+              {adminWorkspaces.length !== 1 && "s"}
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-black/[0.06] dark:border-white/[0.05]">
+                  <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-[0.06em] font-medium text-[#858c87] dark:text-[#6e7672]">
+                    Workspace
+                  </th>
+                  <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-[0.06em] font-medium text-[#858c87] dark:text-[#6e7672]">
+                    Owner
+                  </th>
+                  <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-[0.06em] font-medium text-[#858c87] dark:text-[#6e7672]">
+                    Members
+                  </th>
+                  <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-[0.06em] font-medium text-[#858c87] dark:text-[#6e7672]">
+                    Status
+                  </th>
+                  <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-[0.06em] font-medium text-[#858c87] dark:text-[#6e7672]">
+                    Created
+                  </th>
+                  <th className="px-5 py-2.5" />
+                </tr>
+              </thead>
+              <tbody>
+                {adminWorkspaces.map((ws) => (
+                  <tr
+                    key={ws.id}
+                    className="border-b border-black/[0.04] dark:border-white/[0.04] last:border-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                  >
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className="w-7 h-7 rounded-md flex items-center justify-center text-[11px] font-semibold text-white shrink-0"
+                          style={{ background: ws.color }}
+                        >
+                          {ws.name[0].toUpperCase()}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-medium text-[#1a201c] dark:text-[#e8ece9] truncate">
+                            {ws.name}
+                          </div>
+                          {ws.description && (
+                            <div className="text-[11px] text-[#858c87] dark:text-[#6e7672] truncate max-w-[200px]">
+                              {ws.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="text-[13px] text-[#1a201c] dark:text-[#e8ece9]">
+                        {ws.owner.firstname || ws.owner.lastname
+                          ? `${ws.owner.firstname ?? ""} ${ws.owner.lastname ?? ""}`.trim()
+                          : ws.owner.email}
+                      </div>
+                      {(ws.owner.firstname || ws.owner.lastname) && (
+                        <div className="text-[11px] text-[#858c87] dark:text-[#6e7672]">
+                          {ws.owner.email}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-5 py-3 text-[13px] text-[#1a201c] dark:text-[#e8ece9]">
+                      {ws._count.members}
+                    </td>
+                    <td className="px-5 py-3">
+                      <select
+                        value={ws.status}
+                        disabled={updatingStatusId === ws.id}
+                        onChange={(e) => handleStatusChange(ws, e.target.value)}
+                        className={`h-[24px] px-2 rounded-md text-[11px] font-medium border cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${getStatusBadgeClass(ws.status)}`}
+                      >
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="COMPLETED">COMPLETED</option>
+                        <option value="ARCHIVED">ARCHIVED</option>
+                      </select>
+                    </td>
+                    <td className="px-5 py-3 text-[12px] text-[#858c87] dark:text-[#6e7672]">
+                      {new Date(ws.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-5 py-3">
+                      <button
+                        onClick={() => setConfirmingWorkspace(ws)}
+                        disabled={deletingWorkspaceId === ws.id}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-[#858c87] dark:text-[#6e7672] hover:bg-[#c25a4a]/10 hover:text-[#c25a4a] dark:hover:text-[#e07b6b] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete workspace"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {adminWorkspaces.length === 0 && (
+            <p className="text-center py-10 text-[13px] text-[#858c87] dark:text-[#6e7672]">
+              No workspaces found.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
 };
+
+function getStatusBadgeClass(status: string): string {
+  switch (status) {
+    case "ACTIVE":
+      return "bg-[#5a8a6b]/10 text-[#3e6a4d] dark:text-[#6db383] border-[#5a8a6b]/30";
+    case "COMPLETED":
+      return "bg-[#7a9bbf]/10 text-[#4a6a8a] dark:text-[#7a9bbf] border-[#7a9bbf]/30";
+    case "ARCHIVED":
+      return "bg-black/[0.04] dark:bg-white/[0.04] text-[#858c87] dark:text-[#6e7672] border-black/[0.08] dark:border-white/[0.07]";
+    default:
+      return "bg-black/[0.04] dark:bg-white/[0.04] text-[#858c87] dark:text-[#6e7672] border-black/[0.08] dark:border-white/[0.07]";
+  }
+}
 
 function getRoleBadgeClass(role: string): string {
   switch (role) {
