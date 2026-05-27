@@ -59,7 +59,16 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
   - Whiteboard — Excalidraw-based collaborative canvas with multi-board support, live remote cursors, save status badge, 15 starter templates, comments pinned to shapes, and version history with one-click restore
   - Shared Links — persisted URL bookmarks (Figma files, staging sites, etc.), any workspace member can add, creator or workspace owner can delete, hostname + relative time + adder attribution shown per link
 - **Profile / Settings** — edit name, change password, enable/disable 2FA, notification preferences (UI), billing preview
-- **Admin panel** — list users, change role, delete user, pagination
+- **Admin panel** — sidebar navigation with 8 tabs:
+  - Overview — platform stats cards (users, workspaces, active/completed/archived, signups this week/month), 30-day activity chart (signups + workspace creation)
+  - Users — searchable/filterable table (role, verified status), click row for detail drawer (workspaces, sessions, invites), suspend/activate, reset password, force-verify, delete
+  - Workspaces — searchable table with owner, member count, status change, delete
+  - Invites — all platform invites with status (used/expired/pending), revoke action
+  - Sessions — all active sessions with user/IP/device, force-logout (revoke)
+  - Files — storage stats, file table with workspace/uploader/size/type, permanent delete
+  - Audit Log — tracks all admin actions with actor, target, metadata, searchable by target type
+  - Settings — configurable platform defaults (invite expiry, max file size, maintenance mode, registration toggle)
+  - Search, filter, and pagination on all tables
 
 ### Client (invited)
 - **Invite page** (`/invite/:token`) — validates invite token, shows workspace info, client sets email (shareable link) + password → account created → enters workspace
@@ -103,7 +112,7 @@ src/
 ├── components/       # Shared components (ProtectedRoute)
 ├── constants/        # Route constants
 ├── context/          # AuthContext (JWT + Axios), ThemeContext (light/dark)
-├── hooks/            # useSocket, useWhiteboardSocket, useWhiteboardComments, useWhiteboardVersions
+├── hooks/            # useSocket, useWhiteboardSocket, useWhiteboardComments, useWhiteboardVersions, useAdminStats, useAdminUsers, useAdminUserDetail, useAdminWorkspaces, useAdminInvites, useAdminSessions, useAdminFiles, useAdminAuditLog, useAdminSettings
 ├── pages/
 │   ├── homePage/             # Landing page
 │   ├── loginPage/            # Sign in
@@ -114,7 +123,7 @@ src/
 │   ├── portalPage/           # Client portal — minimal workspace view
 │   ├── invitePage/           # Client invite acceptance + account setup
 │   ├── profilePage/          # Profile + settings (password, 2FA, notifications, billing)
-│   ├── adminPage/            # Admin user management
+│   ├── adminPage/            # Admin panel (overview, users, workspaces, invites, sessions, files, audit log, settings)
 │   ├── verifyEmailPage/      # Email verification confirmation
 │   ├── forgotPasswordPage/   # Forgot password
 │   ├── resetPasswordPage/    # Reset password via token
