@@ -27,6 +27,7 @@ import { WorkspacesTable } from "./components/WorkspacesTable";
 import { InvitesTable } from "./components/InvitesTable";
 import { SessionsTable } from "./components/SessionsTable";
 import { FilesTable } from "./components/FilesTable";
+import { AuditLogTable } from "./components/AuditLogTable";
 
 export const AdminPage = () => {
   const navigate = useNavigate();
@@ -219,6 +220,8 @@ export const AdminPage = () => {
         <SessionsTable />
 
         <FilesTable />
+
+        <AuditLogTable />
       </div>
 
       {selectedUserId && (
