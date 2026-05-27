@@ -16,7 +16,7 @@ export const OnboardingHeader = ({
 }: OnboardingHeaderProps) => (
   <header className="flex items-center justify-between px-8 py-5 border-b border-black/[0.06] dark:border-white/[0.05]">
     <Link
-      to="/"
+      to="/dashboard"
       className="flex items-center gap-2 text-[14px] font-semibold tracking-[-0.02em] text-[#1a201c] dark:text-[#e8ece9]"
     >
       <span className="w-[22px] h-[22px] rounded-[6px] bg-[#5a8a6b] text-white flex items-center justify-center">
