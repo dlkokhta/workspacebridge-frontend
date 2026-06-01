@@ -11,6 +11,7 @@ interface FilesGridProps {
   canDelete: (file: FileSummary) => boolean;
   onDownload: (fileId: string) => void;
   onDeleteRequest: (file: FileSummary) => void;
+  onCommentsRequest: (file: FileSummary) => void;
 }
 
 export const FilesGrid = ({
@@ -18,6 +19,7 @@ export const FilesGrid = ({
   canDelete,
   onDownload,
   onDeleteRequest,
+  onCommentsRequest,
 }: FilesGridProps) => (
   <div
     className="grid gap-4"
@@ -46,6 +48,7 @@ export const FilesGrid = ({
                 canDelete={canDelete(file)}
                 onDownload={() => onDownload(file.id)}
                 onDelete={() => onDeleteRequest(file)}
+                onComments={() => onCommentsRequest(file)}
               />
             </div>
             <div className="text-[11px] text-[#858c87] dark:text-[#6e7672]">

@@ -14,6 +14,7 @@ interface FilesListProps {
   canDelete: (file: FileSummary) => boolean;
   onDownload: (fileId: string) => void;
   onDeleteRequest: (file: FileSummary) => void;
+  onCommentsRequest: (file: FileSummary) => void;
 }
 
 export const FilesList = ({
@@ -21,6 +22,7 @@ export const FilesList = ({
   canDelete,
   onDownload,
   onDeleteRequest,
+  onCommentsRequest,
 }: FilesListProps) => (
   <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] overflow-hidden">
     <div
@@ -68,6 +70,7 @@ export const FilesList = ({
             canDelete={canDelete(file)}
             onDownload={() => onDownload(file.id)}
             onDelete={() => onDeleteRequest(file)}
+            onComments={() => onCommentsRequest(file)}
           />
         </div>
       );

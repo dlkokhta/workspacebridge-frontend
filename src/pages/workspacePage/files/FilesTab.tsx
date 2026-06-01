@@ -3,6 +3,7 @@ import { useFiles, type FileSummary, type TrashedFile } from "./useFiles";
 import { FileUploadZone } from "./FileUploadZone";
 import { DeleteFileModal } from "./DeleteFileModal";
 import { PurgeFileModal } from "./PurgeFileModal";
+import { FileCommentsModal } from "./FileCommentsModal";
 import { TrashList } from "./TrashList";
 import { FilesGrid } from "./FilesGrid";
 import { FilesList } from "./FilesList";
@@ -41,6 +42,7 @@ export const FilesTab = ({
   const [tab, setTab] = useState<"files" | "trash">("files");
   const [confirmDelete, setConfirmDelete] = useState<FileSummary | null>(null);
   const [confirmPurge, setConfirmPurge] = useState<TrashedFile | null>(null);
+  const [commentsFor, setCommentsFor] = useState<FileSummary | null>(null);
 
   // Lazy-load the trash list the first time the user opens that tab.
   useEffect(() => {
@@ -113,6 +115,7 @@ export const FilesTab = ({
             canDelete={canDelete}
             onDownload={(fileId) => void downloadFile(fileId)}
             onDeleteRequest={setConfirmDelete}
+            onCommentsRequest={setCommentsFor}
           />
         ) : (
           <FilesList
@@ -120,6 +123,7 @@ export const FilesTab = ({
             canDelete={canDelete}
             onDownload={(fileId) => void downloadFile(fileId)}
             onDeleteRequest={setConfirmDelete}
+            onCommentsRequest={setCommentsFor}
           />
         )}
       </div>
@@ -137,6 +141,16 @@ export const FilesTab = ({
           fileName={confirmPurge.name}
           onConfirm={() => void handleConfirmPurge()}
           onCancel={() => setConfirmPurge(null)}
+        />
+      )}
+
+      {commentsFor && (
+        <FileCommentsModal
+          fileId={commentsFor.id}
+          fileName={commentsFor.name}
+          currentUserId={currentUserId}
+          workspaceOwnerId={workspaceOwnerId}
+          onClose={() => setCommentsFor(null)}
         />
       )}
     </div>
