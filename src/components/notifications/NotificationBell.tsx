@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "./useNotifications";
+import { useNotificationSocket } from "./useNotificationSocket";
 import { NotificationItem } from "./NotificationItem";
 import type { NotificationItem as Notification } from "./notificationKeys";
 
@@ -9,6 +10,7 @@ export const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  useNotificationSocket();
   const {
     notifications,
     unreadCount,
