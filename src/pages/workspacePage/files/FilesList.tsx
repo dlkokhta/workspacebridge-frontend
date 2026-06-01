@@ -1,5 +1,6 @@
 import type { FileSummary } from "./useFiles";
 import { FileCardActions } from "./FileCardActions";
+import { FileCommentButton } from "./FileCommentButton";
 import {
   formatBytes,
   formatRelativeTime,
@@ -7,7 +8,7 @@ import {
   getFileKindInfo,
 } from "./fileHelpers";
 
-const LIST_GRID = "1fr 110px 90px 130px 90px 40px";
+const LIST_GRID = "1fr 110px 90px 130px 90px 78px";
 
 interface FilesListProps {
   files: FileSummary[];
@@ -66,12 +67,17 @@ export const FilesList = ({
           <span className="text-[#5a625e] dark:text-[#a0a8a3] truncate">
             {formatUploader(file.uploadedBy)}
           </span>
-          <FileCardActions
-            canDelete={canDelete(file)}
-            onDownload={() => onDownload(file.id)}
-            onDelete={() => onDeleteRequest(file)}
-            onComments={() => onCommentsRequest(file)}
-          />
+          <div className="flex items-center justify-end gap-0.5">
+            <FileCommentButton
+              count={file.commentCount ?? 0}
+              onClick={() => onCommentsRequest(file)}
+            />
+            <FileCardActions
+              canDelete={canDelete(file)}
+              onDownload={() => onDownload(file.id)}
+              onDelete={() => onDeleteRequest(file)}
+            />
+          </div>
         </div>
       );
     })}

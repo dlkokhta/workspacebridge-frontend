@@ -1,5 +1,6 @@
 import type { FileSummary } from "./useFiles";
 import { FileCardActions } from "./FileCardActions";
+import { FileCommentButton } from "./FileCommentButton";
 import {
   formatBytes,
   formatRelativeTime,
@@ -44,12 +45,17 @@ export const FilesGrid = ({
               <div className="text-[13px] font-medium text-[#1a201c] dark:text-[#e8ece9] truncate flex-1">
                 {file.name}
               </div>
-              <FileCardActions
-                canDelete={canDelete(file)}
-                onDownload={() => onDownload(file.id)}
-                onDelete={() => onDeleteRequest(file)}
-                onComments={() => onCommentsRequest(file)}
-              />
+              <div className="flex items-center gap-0.5 shrink-0">
+                <FileCommentButton
+                  count={file.commentCount ?? 0}
+                  onClick={() => onCommentsRequest(file)}
+                />
+                <FileCardActions
+                  canDelete={canDelete(file)}
+                  onDownload={() => onDownload(file.id)}
+                  onDelete={() => onDeleteRequest(file)}
+                />
+              </div>
             </div>
             <div className="text-[11px] text-[#858c87] dark:text-[#6e7672]">
               {formatBytes(file.size)} · {formatRelativeTime(file.createdAt)}

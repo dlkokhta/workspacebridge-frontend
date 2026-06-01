@@ -15,6 +15,9 @@ export interface FileSummary {
   } | null;
   createdAt: string;
   updatedAt: string;
+  // Total comment count. Only the active file list populates this; trash,
+  // upload, and restore responses omit it (consumers default to 0).
+  commentCount?: number;
 }
 
 export interface TrashedFile extends FileSummary {

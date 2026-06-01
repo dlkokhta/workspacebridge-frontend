@@ -1,19 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Download, MessageSquare, MoreHorizontal, Trash2 } from "lucide-react";
+import { Download, MoreHorizontal, Trash2 } from "lucide-react";
 
 interface FileCardActionsProps {
   canDelete: boolean;
   onDownload: () => void;
   onDelete: () => void;
-  onComments: () => void;
 }
 
 export const FileCardActions = ({
   canDelete,
   onDownload,
   onDelete,
-  onComments,
 }: FileCardActionsProps) => {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
@@ -76,15 +74,6 @@ export const FileCardActions = ({
               className="w-full px-3 py-1.5 inline-flex items-center gap-2 text-left text-[#1a201c] dark:text-[#fafaf7] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
             >
               <Download size={12} /> Download
-            </button>
-            <button
-              onClick={() => {
-                setOpen(false);
-                onComments();
-              }}
-              className="w-full px-3 py-1.5 inline-flex items-center gap-2 text-left text-[#1a201c] dark:text-[#fafaf7] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
-            >
-              <MessageSquare size={12} /> Comments
             </button>
             {canDelete && (
               <button

@@ -44,6 +44,8 @@ export const useFileComments = (fileId: string) => {
       queryClient.setQueryData<FileComment[]>(fileCommentsKey(fileId), (prev) =>
         prev ? [...prev, created] : [created],
       );
+      // Refresh the file list so the comment-count badge stays accurate.
+      void queryClient.invalidateQueries({ queryKey: ["files"] });
     },
     onError: (err) =>
       setActionError(extractFilesError(err) ?? "Failed to add comment"),
@@ -58,6 +60,7 @@ export const useFileComments = (fileId: string) => {
       queryClient.setQueryData<FileComment[]>(fileCommentsKey(fileId), (prev) =>
         prev ? prev.filter((comment) => comment.id !== commentId) : prev,
       );
+      void queryClient.invalidateQueries({ queryKey: ["files"] });
     },
     onError: (err) =>
       setActionError(extractFilesError(err) ?? "Failed to delete comment"),
