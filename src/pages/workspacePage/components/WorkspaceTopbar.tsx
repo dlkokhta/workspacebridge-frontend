@@ -1,5 +1,6 @@
-import { Bell, Moon, Share2, Sun } from "lucide-react";
+import { Moon, Share2, Sun } from "lucide-react";
 import type { UserProfile } from "../types";
+import { NotificationBell } from "../../../components/notifications/NotificationBell";
 
 interface WorkspaceTopbarProps {
   workspaceName?: string;
@@ -36,12 +37,7 @@ export const WorkspaceTopbar = ({
       >
         {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
       </button>
-      <button
-        className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
-        aria-label="Notifications"
-      >
-        <Bell size={14} />
-      </button>
+      <NotificationBell />
       {profile?.picture ? (
         <img src={profile.picture} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
       ) : (
