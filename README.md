@@ -71,9 +71,16 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
   - Settings — configurable platform defaults (invite expiry, max file size, maintenance mode, registration toggle)
   - Search, filter, and pagination on all tables
 
+### Search (⌘K command palette)
+- **Global command palette** opened with **⌘K / Ctrl+K** (or the sidebar search button) from the dashboard and any workspace page
+- Searches the whole account at once — **messages, files & file comments, shared & private tasks, shared links, whiteboard comments, and workspaces by name** — so you find things without remembering which client they belong to
+- **Ranked results with highlighted snippets**, grouped by type with a per-result workspace badge, and **click-through** that jumps straight to the matching workspace tab (or the workspace itself)
+- **Keyboard-driven** — ↑/↓ to move, ↵ to open, esc to close; debounced (250ms), starts at 2 characters, and keeps previous results visible while typing
+- Built on **TanStack Query** + a shared `useSearch` hook; match highlights render as **safe React text nodes** (no `dangerouslySetInnerHTML`)
+
 ### Client (invited)
 - **Invite page** (`/invite/:token`) — validates invite token, shows workspace info, client sets email (shareable link) + password → account created → enters workspace
-- **Portal** — clean minimal interface with no sidebar, same 4 tabs with client-appropriate actions, workspace name in header
+- **Portal** — clean minimal interface with no sidebar, same 4 tabs with client-appropriate actions, workspace name in header, plus the same **⌘K search** scoped to their own workspace (switches tabs in place, never leaves the portal)
 
 ## Getting Started
 
@@ -110,10 +117,10 @@ npm run test:run
 
 ```
 src/
-├── components/       # Shared components (ProtectedRoute, notification bell + dropdown)
+├── components/       # Shared components (ProtectedRoute, notification bell + dropdown, search command palette)
 ├── constants/        # Route constants
 ├── context/          # AuthContext (JWT + Axios), ThemeContext (light/dark)
-├── hooks/            # useSocket, useWhiteboardSocket, useWhiteboardComments, useWhiteboardVersions, useAdminStats, useAdminUsers, useAdminUserDetail, useAdminWorkspaces, useAdminInvites, useAdminSessions, useAdminFiles, useAdminAuditLog, useAdminSettings
+├── hooks/            # useSearch, useDebounce, useSocket, useWhiteboardSocket, useWhiteboardComments, useWhiteboardVersions, useAdminStats, useAdminUsers, useAdminUserDetail, useAdminWorkspaces, useAdminInvites, useAdminSessions, useAdminFiles, useAdminAuditLog, useAdminSettings
 ├── pages/
 │   ├── homePage/             # Landing page
 │   ├── loginPage/            # Sign in
