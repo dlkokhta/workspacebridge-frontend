@@ -60,6 +60,10 @@ export const SearchPalette = ({
       navigate("/dashboard");
       return;
     }
+    if (result.type === "workspace") {
+      navigate(`/workspace/${result.workspaceId}`);
+      return;
+    }
     const { tab } = SEARCH_TYPE_META[result.type];
     const focusId = result.parentId ?? result.id;
     navigate(`/workspace/${result.workspaceId}?tab=${tab}&focus=${focusId}`);

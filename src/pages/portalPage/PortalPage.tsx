@@ -20,6 +20,7 @@ import type { Tab } from "./types";
 // Search result types map onto the portal's own tab names (note: shared tasks
 // live under "shared-tasks" here, not "todos" as in the freelancer view).
 const SEARCH_TYPE_TO_PORTAL_TAB: Record<SearchResultType, Tab> = {
+  workspace: "messages", // never returned to clients (global-only); kept total
   message: "messages",
   file: "files",
   file_comment: "files",

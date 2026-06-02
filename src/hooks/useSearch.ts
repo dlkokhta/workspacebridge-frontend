@@ -3,6 +3,7 @@ import { axiosInstance } from "../context/AuthContext";
 import { useDebounce } from "./useDebounce";
 
 export type SearchResultType =
+  | "workspace"
   | "message"
   | "file"
   | "file_comment"

@@ -44,7 +44,7 @@ export const SearchResultRow = ({
         <span className="text-[10px] uppercase tracking-[0.06em] font-medium text-[#858c87] dark:text-[#6e7672]">
           {meta.label}
         </span>
-        {result.workspaceName && (
+        {result.workspaceName && result.type !== "workspace" && (
           <span className="text-[11px] text-[#858c87] dark:text-[#6e7672] truncate max-w-[120px]">
             {result.workspaceName}
           </span>
