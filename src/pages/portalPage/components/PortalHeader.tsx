@@ -1,4 +1,4 @@
-import { Bell, LogOut, Moon, Sun } from "lucide-react";
+import { Bell, LogOut, Moon, Search, Sun } from "lucide-react";
 import type { UserProfile } from "../../../hooks/useCurrentUser";
 import type { Workspace } from "../../../hooks/useWorkspaces";
 import { getInitials } from "../../../utils/getInitials";
@@ -9,6 +9,7 @@ interface PortalHeaderProps {
   theme: "light" | "dark";
   onToggleTheme: () => void;
   onLogout: () => void;
+  onOpenSearch: () => void;
 }
 
 export const PortalHeader = ({
@@ -17,6 +18,7 @@ export const PortalHeader = ({
   theme,
   onToggleTheme,
   onLogout,
+  onOpenSearch,
 }: PortalHeaderProps) => {
   const initials = getInitials(profile);
   const displayName = profile.firstname
@@ -68,6 +70,14 @@ export const PortalHeader = ({
       </div>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={onOpenSearch}
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
+          title="Search (⌘K)"
+          aria-label="Search"
+        >
+          <Search size={14} />
+        </button>
         <button
           className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer"
           aria-label="Notifications"

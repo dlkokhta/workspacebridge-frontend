@@ -12,7 +12,22 @@ import { SharedLinksTab } from "../workspacePage/tabs/SharedLinksTab";
 import { SharedTasksTab } from "../workspacePage/sharedTasks/SharedTasksTab";
 import { PortalHeader } from "./components/PortalHeader";
 import { PortalTabBar } from "./components/PortalTabBar";
+import { SearchPalette } from "../../components/search/SearchPalette";
+import { useSearchPalette } from "../../components/search/useSearchPalette";
+import type { SearchResult, SearchResultType } from "../../hooks/useSearch";
 import type { Tab } from "./types";
+
+// Search result types map onto the portal's own tab names (note: shared tasks
+// live under "shared-tasks" here, not "todos" as in the freelancer view).
+const SEARCH_TYPE_TO_PORTAL_TAB: Record<SearchResultType, Tab> = {
+  message: "messages",
+  file: "files",
+  file_comment: "files",
+  shared_task: "shared-tasks",
+  private_task: "shared-tasks", // never returned to clients; kept for totality
+  shared_link: "shared-links",
+  whiteboard_comment: "whiteboard",
+};
 
 export const PortalPage = () => {
   const navigate = useNavigate();
@@ -20,6 +35,12 @@ export const PortalPage = () => {
   const { theme, toggleTheme } = useTheme();
 
   const [tab, setTab] = useState<Tab>("messages");
+  const { open: searchOpen, setOpen: setSearchOpen, close: closeSearch } =
+    useSearchPalette();
+
+  const handleSearchNavigate = (result: SearchResult) => {
+    setTab(SEARCH_TYPE_TO_PORTAL_TAB[result.type]);
+  };
 
   const profileQuery = useCurrentUser();
   const workspacesQuery = useWorkspaces();
@@ -63,6 +84,7 @@ export const PortalPage = () => {
         theme={theme}
         onToggleTheme={toggleTheme}
         onLogout={handleLogout}
+        onOpenSearch={() => setSearchOpen(true)}
       />
 
       <PortalTabBar active={tab} onChange={setTab} />
@@ -92,6 +114,15 @@ export const PortalPage = () => {
           <SharedTasksTab workspaceId={workspace.id} />
         )}
       </div>
+
+      {workspace && (
+        <SearchPalette
+          open={searchOpen}
+          onClose={closeSearch}
+          workspaceId={workspace.id}
+          onNavigate={handleSearchNavigate}
+        />
+      )}
     </div>
   );
 };

@@ -13,15 +13,25 @@ import { SearchResultRow } from "./SearchResultRow";
 interface SearchPaletteProps {
   open: boolean;
   onClose: () => void;
+  /** When set, search is scoped to this workspace instead of going global. */
+  workspaceId?: string;
+  /** Overrides the default freelancer navigation (used by the client portal,
+   *  which switches its own tab instead of routing to /workspace/:id). */
+  onNavigate?: (result: SearchResult) => void;
 }
 
-export const SearchPalette = ({ open, onClose }: SearchPaletteProps) => {
+export const SearchPalette = ({
+  open,
+  onClose,
+  workspaceId,
+  onNavigate,
+}: SearchPaletteProps) => {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data, isFetching } = useSearch({ q, enabled: open });
+  const { data, isFetching } = useSearch({ q, workspaceId, enabled: open });
   const results = useMemo(() => data?.results ?? [], [data]);
 
   // Reset and focus the input each time the palette opens.
@@ -42,6 +52,10 @@ export const SearchPalette = ({ open, onClose }: SearchPaletteProps) => {
 
   const go = (result: SearchResult) => {
     onClose();
+    if (onNavigate) {
+      onNavigate(result);
+      return;
+    }
     if (!result.workspaceId) {
       navigate("/dashboard");
       return;
