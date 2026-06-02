@@ -4,6 +4,8 @@ import { LayoutDashboard, LogOut, Plus, Search, Settings, ShieldCheck } from "lu
 import { axiosInstance, useAuth } from "../context/AuthContext";
 import { useCurrentUser, type UserProfile } from "../hooks/useCurrentUser";
 import { useWorkspaces, type Workspace } from "../hooks/useWorkspaces";
+import { SearchPalette } from "../components/search/SearchPalette";
+import { useSearchPalette } from "../components/search/useSearchPalette";
 
 export interface AppShellContext {
   profile: UserProfile | null;
@@ -14,6 +16,8 @@ export interface AppShellContext {
 export const AppShell = () => {
   const navigate = useNavigate();
   const { setAccessToken } = useAuth();
+  const { open: searchOpen, setOpen: setSearchOpen, close: closeSearch } =
+    useSearchPalette();
 
   const profileQuery = useCurrentUser();
   const workspacesQuery = useWorkspaces();
@@ -82,8 +86,9 @@ export const AppShell = () => {
             WorkspaceBridge
           </Link>
           <button
+            onClick={() => setSearchOpen(true)}
             className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
-            title="Search"
+            title="Search (⌘K)"
           >
             <Search size={14} />
           </button>
@@ -91,11 +96,14 @@ export const AppShell = () => {
 
         {/* Search bar */}
         <div className="px-3">
-          <div className="flex items-center gap-2 px-2.5 py-2 bg-white dark:bg-[#151a17] border border-black/[0.08] dark:border-white/[0.07] rounded-lg text-[#858c87] dark:text-[#6e7672] text-[12px]">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="w-full flex items-center gap-2 px-2.5 py-2 bg-white dark:bg-[#151a17] border border-black/[0.08] dark:border-white/[0.07] rounded-lg text-[#858c87] dark:text-[#6e7672] text-[12px] hover:border-[#5a8a6b]/40 transition-colors cursor-pointer"
+          >
             <Search size={13} />
-            <span>Search workspaces</span>
+            <span>Search everything</span>
             <span className="ml-auto font-mono text-[10px] text-[#b5bbb7] dark:text-[#4a514d]">⌘K</span>
-          </div>
+          </button>
         </div>
 
         {/* Workspaces label */}
@@ -203,6 +211,8 @@ export const AppShell = () => {
 
       {/* Child page renders here */}
       <Outlet context={context} />
+
+      <SearchPalette open={searchOpen} onClose={closeSearch} />
     </div>
   );
 };

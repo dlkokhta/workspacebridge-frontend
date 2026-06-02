@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -22,6 +22,16 @@ import { MyTasksTab } from "./myTasks/MyTasksTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import type { Tab, WorkspaceDetail, WorkspaceMember } from "./types";
 
+const WORKSPACE_TABS: Tab[] = [
+  "messages",
+  "files",
+  "whiteboard",
+  "shared-links",
+  "todos",
+  "my-tasks",
+  "settings",
+];
+
 export const WorkspacePage = () => {
   const { id = "northwind" } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -29,8 +39,17 @@ export const WorkspacePage = () => {
   const { theme, toggleTheme } = useTheme();
   const queryClient = useQueryClient();
 
+  const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>("messages");
   const [confirmMember, setConfirmMember] = useState<WorkspaceMember | null>(null);
+
+  // Open the tab named in the URL (?tab=…) — used by global search click-through.
+  useEffect(() => {
+    const requested = searchParams.get("tab");
+    if (requested && WORKSPACE_TABS.includes(requested as Tab)) {
+      setTab(requested as Tab);
+    }
+  }, [searchParams]);
 
   const profileQuery = useCurrentUser();
   const workspacesQuery = useWorkspaces();
