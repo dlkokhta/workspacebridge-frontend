@@ -28,7 +28,7 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
 | Forms | React Hook Form + Yup |
 | HTTP | Axios with auto-refresh interceptor |
 | Server state | TanStack Query (React Query) — caching, mutations, optimistic updates |
-| Realtime | Socket.IO client (chat, whiteboard sync, presence) |
+| Realtime | Socket.IO client (chat, whiteboard sync, presence, notifications) |
 | Whiteboard | Excalidraw |
 | Icons | Lucide React |
 | Testing | Vitest + Testing Library |
@@ -55,9 +55,10 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
 - **Onboarding** — 3-step flow: create workspace (name, description, color) → invite client (email or shareable link) → success
 - **Workspace page** — full app shell with workspace sidebar, 4 tabs:
   - Messages — realtime chat thread (Socket.IO) with file attachment support
-  - Files — drag-and-drop upload zone, grid / list view toggle, file type icons, per-file actions (download, soft-delete to trash, restore from trash, permanent purge), 30-day trash retention with quota awareness
+  - Files — drag-and-drop upload zone, grid / list view toggle, file type icons, per-file actions (download, soft-delete to trash, restore from trash, permanent purge), 30-day trash retention with quota awareness, and threaded comments per file with a live comment count on each card
   - Whiteboard — Excalidraw-based collaborative canvas with multi-board support, live remote cursors, save status badge, 15 starter templates, comments pinned to shapes, and version history with one-click restore
   - Shared Links — persisted URL bookmarks (Figma files, staging sites, etc.), any workspace member can add, creator or workspace owner can delete, hostname + relative time + adder attribution shown per link
+- **Notifications** — bell + unread badge in the workspace header, updating in realtime via Socket.IO; dropdown lists recent notifications (new message, file comment, whiteboard comment), click-to-open, with mark-one / mark-all read. Offline users are emailed instead (handled by the backend)
 - **Profile / Settings** — edit name, change password, enable/disable 2FA, notification preferences (UI), billing preview
 - **Admin panel** — sidebar navigation with 8 tabs:
   - Overview — platform stats cards (users, workspaces, active/completed/archived, signups this week/month), 30-day activity chart (signups + workspace creation)
@@ -109,7 +110,7 @@ npm run test:run
 
 ```
 src/
-├── components/       # Shared components (ProtectedRoute)
+├── components/       # Shared components (ProtectedRoute, notification bell + dropdown)
 ├── constants/        # Route constants
 ├── context/          # AuthContext (JWT + Axios), ThemeContext (light/dark)
 ├── hooks/            # useSocket, useWhiteboardSocket, useWhiteboardComments, useWhiteboardVersions, useAdminStats, useAdminUsers, useAdminUserDetail, useAdminWorkspaces, useAdminInvites, useAdminSessions, useAdminFiles, useAdminAuditLog, useAdminSettings
