@@ -8,6 +8,7 @@ interface WorkspaceSidebarProps {
   profile: UserProfile | null;
   initials: string;
   onLogout: () => void;
+  onOpenSearch: () => void;
 }
 
 export const WorkspaceSidebar = ({
@@ -16,6 +17,7 @@ export const WorkspaceSidebar = ({
   profile,
   initials,
   onLogout,
+  onOpenSearch,
 }: WorkspaceSidebarProps) => {
   const navigate = useNavigate();
 
@@ -39,19 +41,23 @@ export const WorkspaceSidebar = ({
           WorkspaceBridge
         </Link>
         <button
+          onClick={onOpenSearch}
           className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer"
-          title="Search"
+          title="Search (⌘K)"
         >
           <Search size={14} />
         </button>
       </div>
 
       <div className="px-3">
-        <div className="flex items-center gap-2 px-2.5 py-2 bg-white dark:bg-[#151a17] border border-black/[0.08] dark:border-white/[0.07] rounded-lg text-[#858c87] dark:text-[#6e7672] text-[12px]">
+        <button
+          onClick={onOpenSearch}
+          className="w-full flex items-center gap-2 px-2.5 py-2 bg-white dark:bg-[#151a17] border border-black/[0.08] dark:border-white/[0.07] rounded-lg text-[#858c87] dark:text-[#6e7672] text-[12px] hover:border-[#5a8a6b]/40 transition-colors cursor-pointer"
+        >
           <Search size={13} />
-          <span>Search workspaces</span>
+          <span>Search everything</span>
           <span className="ml-auto font-mono text-[10px] text-[#b5bbb7] dark:text-[#4a514d]">⌘K</span>
-        </div>
+        </button>
       </div>
 
       <div className="px-3 pt-2 pb-1 flex items-center justify-between">

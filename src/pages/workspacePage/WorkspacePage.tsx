@@ -10,6 +10,8 @@ import {
   workspaceDetailKey,
 } from "../../hooks/useWorkspaceDetail";
 import { WorkspaceSidebar } from "./components/WorkspaceSidebar";
+import { SearchPalette } from "../../components/search/SearchPalette";
+import { useSearchPalette } from "../../components/search/useSearchPalette";
 import { WorkspaceTopbar } from "./components/WorkspaceTopbar";
 import { WorkspaceTabBar } from "./components/WorkspaceTabBar";
 import { RemoveMemberModal } from "./components/RemoveMemberModal";
@@ -41,6 +43,8 @@ export const WorkspacePage = () => {
 
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>("messages");
+  const { open: searchOpen, setOpen: setSearchOpen, close: closeSearch } =
+    useSearchPalette();
   const [confirmMember, setConfirmMember] = useState<WorkspaceMember | null>(null);
 
   // Open the tab named in the URL (?tab=…) — used by global search click-through.
@@ -124,6 +128,7 @@ export const WorkspacePage = () => {
         profile={profile}
         initials={initials}
         onLogout={handleLogout}
+        onOpenSearch={() => setSearchOpen(true)}
       />
 
       <div className="flex flex-col overflow-hidden min-w-0">
@@ -175,6 +180,8 @@ export const WorkspacePage = () => {
           onConfirm={handleRemoveMember}
         />
       )}
+
+      <SearchPalette open={searchOpen} onClose={closeSearch} />
     </div>
   );
 };
