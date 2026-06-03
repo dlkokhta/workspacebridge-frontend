@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useSocket } from "../../../context/SocketContext";
+import { useChatTyping } from "../../../hooks/useChatTyping";
 import type { Message } from "../types";
 import { MessageBubble } from "./MessageBubble";
 import { MessageComposer } from "./MessageComposer";
+import { TypingIndicator } from "./TypingIndicator";
 
 interface MessagesTabProps {
   workspaceId: string;
@@ -21,6 +23,11 @@ export const MessagesTab = ({
   initials,
 }: MessagesTabProps) => {
   const { socket, connected } = useSocket();
+  const { typingNames, handleTyping, stopTyping } = useChatTyping(
+    socket,
+    connected,
+    workspaceId,
+  );
   const [messages, setMessages] = useState<Message[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -140,7 +147,13 @@ export const MessagesTab = ({
         <div ref={bottomRef} />
       </div>
 
-      <MessageComposer connected={connected} onSend={handleSend} />
+      <TypingIndicator names={typingNames} />
+      <MessageComposer
+        connected={connected}
+        onSend={handleSend}
+        onTyping={handleTyping}
+        onStopTyping={stopTyping}
+      />
     </div>
   );
 };

@@ -4,9 +4,16 @@ import { Paperclip, Send, Smile } from "lucide-react";
 interface MessageComposerProps {
   connected: boolean;
   onSend: (text: string) => void;
+  onTyping: () => void;
+  onStopTyping: () => void;
 }
 
-export const MessageComposer = ({ connected, onSend }: MessageComposerProps) => {
+export const MessageComposer = ({
+  connected,
+  onSend,
+  onTyping,
+  onStopTyping,
+}: MessageComposerProps) => {
   const [draft, setDraft] = useState("");
 
   const handleSend = () => {
@@ -14,6 +21,7 @@ export const MessageComposer = ({ connected, onSend }: MessageComposerProps) => 
     if (!trimmed || !connected) return;
     onSend(trimmed);
     setDraft("");
+    onStopTyping();
   };
 
   return (
@@ -24,7 +32,11 @@ export const MessageComposer = ({ connected, onSend }: MessageComposerProps) => 
         </button>
         <input
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            if (e.target.value) onTyping();
+            else onStopTyping();
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
