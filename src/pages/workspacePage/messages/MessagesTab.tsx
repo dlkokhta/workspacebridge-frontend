@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { CheckCheck } from "lucide-react";
 import { useSocket } from "../../../context/SocketContext";
 import { useChatTyping } from "../../../hooks/useChatTyping";
+import { useReadReceipts } from "../../../hooks/useReadReceipts";
 import type { Message } from "../types";
 import { MessageBubble } from "./MessageBubble";
 import { MessageComposer } from "./MessageComposer";
@@ -28,6 +30,7 @@ export const MessagesTab = ({
     connected,
     workspaceId,
   );
+  const { seenUpTo, markRead } = useReadReceipts(socket, connected, workspaceId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -86,6 +89,24 @@ export const MessagesTab = ({
     }
   }, [messages, loadingMore]);
 
+  // Whenever the visible thread grows (history loaded, message received or
+  // sent) while this tab is open, report that we've read up to now.
+  useEffect(() => {
+    if (messages.length > 0) markRead();
+  }, [messages.length, markRead]);
+
+  // The last of *my* messages the other side has already read — gets a "Seen".
+  const lastSeenIndex = useMemo(() => {
+    if (seenUpTo === null) return -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.sender.id === userId && new Date(m.createdAt).getTime() <= seenUpTo) {
+        return i;
+      }
+    }
+    return -1;
+  }, [messages, seenUpTo, userId]);
+
   const handleScroll = () => {
     const container = scrollRef.current;
     if (!container || loadingMore || !hasMore || messages.length === 0) return;
@@ -135,13 +156,21 @@ export const MessagesTab = ({
             i === 0 || messages[i - 1].sender.id !== m.sender.id;
 
           return (
-            <MessageBubble
-              key={m.id}
-              message={m}
-              isMe={isMe}
-              showMeta={showMeta}
-              currentUserInitials={initials}
-            />
+            <Fragment key={m.id}>
+              <MessageBubble
+                message={m}
+                isMe={isMe}
+                showMeta={showMeta}
+                currentUserInitials={initials}
+              />
+              {i === lastSeenIndex && (
+                <div className="-mt-2 flex justify-end pr-1 text-[11px] text-[#858c87] dark:text-[#6e7672]">
+                  <span className="flex items-center gap-1">
+                    <CheckCheck size={12} /> Seen
+                  </span>
+                </div>
+              )}
+            </Fragment>
           );
         })}
         <div ref={bottomRef} />
