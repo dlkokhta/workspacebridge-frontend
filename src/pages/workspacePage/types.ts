@@ -57,7 +57,7 @@ export interface FileItem {
   color: string;
 }
 
-export type TaskStatus = "TODO" | "DONE";
+export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
 
 export interface Task {
   id: string;

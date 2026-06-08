@@ -10,7 +10,7 @@ interface UseSharedTasksResult {
   loading: boolean;
   error: string | null;
   addTask: (title: string) => Promise<void>;
-  toggleTask: (taskId: string, nextStatus: TaskStatus) => Promise<void>;
+  setStatus: (taskId: string, nextStatus: TaskStatus) => Promise<void>;
   removeTask: (taskId: string) => Promise<void>;
   clearError: () => void;
 }
@@ -157,7 +157,7 @@ export const useSharedTasks = (workspaceId: string): UseSharedTasksResult => {
     [addMutation],
   );
 
-  const toggleTask = useCallback(
+  const setStatus = useCallback(
     async (taskId: string, nextStatus: TaskStatus) => {
       try {
         await toggleMutation.mutateAsync({ taskId, nextStatus });
@@ -190,7 +190,7 @@ export const useSharedTasks = (workspaceId: string): UseSharedTasksResult => {
     loading: listQuery.isLoading,
     error: mutationError ?? queryError,
     addTask,
-    toggleTask,
+    setStatus,
     removeTask,
     clearError,
   };
