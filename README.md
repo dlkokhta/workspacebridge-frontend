@@ -14,7 +14,7 @@
 
 ## What is this?
 
-The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration platform. Freelancers create workspaces per client, invite them via magic link or email, and collaborate through messages, files, whiteboard, and shared links — all in one place.
+The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration platform. Freelancers create workspaces per client, invite them via magic link or email, and collaborate through messages, files, whiteboard, shared links, and tasks — all in one place.
 
 ## Tech Stack
 
@@ -53,11 +53,13 @@ The frontend SPA for **WorkspaceBridge**, a freelancer–client collaboration pl
 ### Freelancer (authenticated)
 - **Dashboard** — workspace cards grid with status badges, stats bar (total/active/completed), empty state, new workspace card
 - **Onboarding** — 3-step flow: create workspace (name, description, color) → invite client (email or shareable link) → success
-- **Workspace page** — full app shell with workspace sidebar, 4 tabs:
+- **Workspace page** — full app shell with workspace sidebar, 6 tabs:
   - Messages — realtime chat thread (Socket.IO) with file attachment support
   - Files — drag-and-drop upload zone, grid / list view toggle, file type icons, per-file actions (download, soft-delete to trash, restore from trash, permanent purge), 30-day trash retention with quota awareness, and threaded comments per file with a live comment count on each card
   - Whiteboard — Excalidraw-based collaborative canvas with multi-board support, live remote cursors, save status badge, 15 starter templates, comments pinned to shapes, and version history with one-click restore
   - Shared Links — persisted URL bookmarks (Figma files, staging sites, etc.), any workspace member can add, creator or workspace owner can delete, hostname + relative time + adder attribution shown per link
+  - Shared Tasks — kanban board with three columns (To do / In progress / Done); drag cards between columns to change status, synced in realtime over Socket.IO and visible to both you and the client
+  - My Tasks — your private, freelancer-only checklist for this workspace (never shown to the client)
 - **Notifications** — bell + unread badge in the workspace header, updating in realtime via Socket.IO; dropdown lists recent notifications (new message, file comment, whiteboard comment), click-to-open, with mark-one / mark-all read. Offline users are emailed instead (handled by the backend)
 - **Profile / Settings** — edit name, change password, enable/disable 2FA, notification preferences (UI), billing preview
 - **Admin panel** — sidebar navigation with 8 tabs:
@@ -127,7 +129,7 @@ src/
 │   ├── registerPage/         # Register
 │   ├── dashboardPage/        # Freelancer home — workspace cards grid
 │   ├── onboardingPage/       # 3-step workspace creation + client invite
-│   ├── workspacePage/        # Workspace: Messages, Files, Whiteboard, Shared Links
+│   ├── workspacePage/        # Workspace: Messages, Files, Whiteboard, Shared Links, Tasks
 │   ├── portalPage/           # Client portal — minimal workspace view
 │   ├── invitePage/           # Client invite acceptance + account setup
 │   ├── profilePage/          # Profile + settings (password, 2FA, notifications, billing)
