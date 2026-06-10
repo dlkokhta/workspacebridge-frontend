@@ -44,7 +44,11 @@ export const LoginForm = () => {
     try {
       const response = await axios.post<LoginResponse>(
         `${url}/auth/login`,
-        { email: data.email, password: data.password },
+        {
+          email: data.email,
+          password: data.password,
+          rememberMe: !!data.rememberMe,
+        },
         { withCredentials: true },
       );
 
@@ -91,7 +95,7 @@ export const LoginForm = () => {
       </div>
 
       {/* Password */}
-      <div className="mb-6">
+      <div className="mb-4">
         <div className="flex items-center justify-between mb-1.5">
           <label className="text-[12px] font-medium text-[#5a625e] dark:text-[#a0a8a3] tracking-[0.01em]">
             Password
@@ -126,6 +130,18 @@ export const LoginForm = () => {
           <p className="mt-1.5 text-[12px] text-red-500">{errors.password.message}</p>
         )}
       </div>
+
+      {/* Remember me */}
+      <label className="flex items-center gap-2 mb-6 cursor-pointer select-none">
+        <input
+          {...register("rememberMe")}
+          type="checkbox"
+          className="h-3.5 w-3.5 rounded border-black/[0.2] dark:border-white/[0.2] accent-[#5a8a6b] cursor-pointer"
+        />
+        <span className="text-[12px] text-[#5a625e] dark:text-[#a0a8a3]">
+          Keep me signed in for 30 days
+        </span>
+      </label>
 
       <button
         type="submit"

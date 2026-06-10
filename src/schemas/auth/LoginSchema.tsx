@@ -14,4 +14,6 @@ export const loginSchema = yup.object({
     .min(8, "password must be 8 or more characters")
     .max(25, "password must contain 25 ot less charachters")
     .required("password is required"),
+
+  rememberMe: yup.boolean(),
 });

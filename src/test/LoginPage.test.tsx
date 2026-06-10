@@ -115,4 +115,43 @@ describe('LoginPage', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/adminPanel');
     });
   });
+
+  it('sends rememberMe: false by default', async () => {
+    mockedAxios.post.mockResolvedValueOnce({
+      data: { accessToken: 'token', user: { role: 'FREELANCER' } },
+    });
+
+    renderLoginPage();
+    await userEvent.type(screen.getByPlaceholderText('you@studio.com'), 'john@example.com');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'Password1!');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/auth/login'),
+        expect.objectContaining({ rememberMe: false }),
+        expect.anything(),
+      );
+    });
+  });
+
+  it('sends rememberMe: true when the checkbox is ticked', async () => {
+    mockedAxios.post.mockResolvedValueOnce({
+      data: { accessToken: 'token', user: { role: 'FREELANCER' } },
+    });
+
+    renderLoginPage();
+    await userEvent.type(screen.getByPlaceholderText('you@studio.com'), 'john@example.com');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'Password1!');
+    await userEvent.click(screen.getByRole('checkbox'));
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/auth/login'),
+        expect.objectContaining({ rememberMe: true }),
+        expect.anything(),
+      );
+    });
+  });
 });
