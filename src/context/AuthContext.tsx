@@ -3,6 +3,14 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
+// Reads the non-httpOnly csrfToken cookie set by the backend so it can be
+// echoed back in the X-CSRF-Token header (double-submit CSRF protection on
+// the cookie-authenticated refresh/logout endpoints).
+export const getCsrfToken = (): string => {
+  const match = document.cookie.match(/(?:^|;\s*)csrfToken=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : "";
+};
+
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
@@ -38,6 +46,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (tokenRef.current) {
         config.headers.Authorization = `Bearer ${tokenRef.current}`;
       }
+      const csrf = getCsrfToken();
+      if (csrf) {
+        config.headers["X-CSRF-Token"] = csrf;
+      }
       return config;
     });
 
@@ -50,7 +62,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           try {
             if (!refreshPromiseRef.current) {
               refreshPromiseRef.current = axios
-                .post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true, headers: { "X-Requested-With": "XMLHttpRequest" } })
+                .post(`${BASE_URL}/auth/refresh`, {}, {
+                  withCredentials: true,
+                  headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRF-Token": getCsrfToken(),
+                  },
+                })
                 .then((res) => {
                   const newToken: string = res.data.accessToken;
                   setAccessToken(newToken);
@@ -85,7 +103,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Initial refresh on page load
   useEffect(() => {
     axios
-      .post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true, headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .post(`${BASE_URL}/auth/refresh`, {}, {
+        withCredentials: true,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRF-Token": getCsrfToken(),
+        },
+      })
       .then((res) => setAccessToken(res.data.accessToken))
       .catch(() => {})
       .finally(() => setIsLoading(false));
