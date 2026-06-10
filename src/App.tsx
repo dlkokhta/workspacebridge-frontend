@@ -1,8 +1,14 @@
 import "./App.css";
 import { AppRouter } from "./router";
+import { SessionTimeoutWarning } from "./components/SessionTimeoutWarning";
 
 function App() {
-  return <AppRouter />;
+  return (
+    <>
+      <SessionTimeoutWarning />
+      <AppRouter />
+    </>
+  );
 }
 
 export default App;
