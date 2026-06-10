@@ -5,6 +5,7 @@ import { Row } from "../components/Row";
 import { SectionHeader } from "../components/SectionHeader";
 import { SmallBtn } from "../components/SmallBtn";
 import { PasswordChangeRow } from "./security/PasswordChangeRow";
+import { SessionsRow } from "./security/SessionsRow";
 import { TwoFactorRow } from "./security/TwoFactorRow";
 
 interface SecuritySectionProps {
@@ -34,22 +35,12 @@ export const SecuritySection = ({ profile, onLogout }: SecuritySectionProps) => 
 
         <TwoFactorRow profile={profile} onSuccess={showSuccess} />
 
-        <Row title="Active sessions" desc="Manage devices currently signed in.">
-          <SmallBtn disabled title="Coming soon">
-            Manage
-          </SmallBtn>
-        </Row>
+        <SessionsRow onSuccess={showSuccess} />
 
         <Row title="Sign out" desc="End your current session on this device.">
           <SmallBtn onClick={onLogout}>
             <LogOut size={13} />
             Sign out
-          </SmallBtn>
-        </Row>
-
-        <Row title="Sign out everywhere" desc="Log out of all sessions on all devices.">
-          <SmallBtn variant="danger" disabled title="Coming soon">
-            Sign out all
           </SmallBtn>
         </Row>
       </div>
