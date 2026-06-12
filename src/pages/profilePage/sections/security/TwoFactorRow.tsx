@@ -7,6 +7,7 @@ import {
   type UserProfile,
 } from "../../../../hooks/useCurrentUser";
 import { SmallBtn } from "../../components/SmallBtn";
+import { BackupCodesPanel } from "./BackupCodesPanel";
 import { DisableTwoFactorForm } from "./DisableTwoFactorForm";
 import { VerifyCodeForm } from "./VerifyCodeForm";
 
@@ -26,6 +27,8 @@ export const TwoFactorRow = ({ profile, onSuccess }: TwoFactorRowProps) => {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Backup codes returned by /auth/2fa/enable — shown exactly once.
+  const [freshCodes, setFreshCodes] = useState<string[] | null>(null);
 
   const generateMutation = useMutation({
     mutationFn: async () => {
@@ -38,7 +41,11 @@ export const TwoFactorRow = ({ profile, onSuccess }: TwoFactorRowProps) => {
 
   const enableMutation = useMutation({
     mutationFn: async (verifyCode: string) => {
-      await axiosInstance.post("/auth/2fa/enable", { code: verifyCode });
+      const { data } = await axiosInstance.post<{
+        message: string;
+        backupCodes: string[];
+      }>("/auth/2fa/enable", { code: verifyCode });
+      return data;
     },
     onSuccess: () => {
       queryClient.setQueryData<UserProfile>(currentUserKey, (prev) =>
@@ -78,8 +85,9 @@ export const TwoFactorRow = ({ profile, onSuccess }: TwoFactorRowProps) => {
     e.preventDefault();
     setError(null);
     try {
-      await enableMutation.mutateAsync(code);
+      const data = await enableMutation.mutateAsync(code);
       resetSetup();
+      setFreshCodes(data.backupCodes);
       onSuccess("2FA enabled. Your account is now protected.");
     } catch (err: unknown) {
       setError(extractApiMessage(err) ?? "Invalid code. Please try again.");
@@ -168,6 +176,10 @@ export const TwoFactorRow = ({ profile, onSuccess }: TwoFactorRowProps) => {
           loadingLabel="Verifying…"
           leftIcon={<ShieldCheck size={14} />}
         />
+      )}
+
+      {freshCodes && (
+        <BackupCodesPanel codes={freshCodes} onDone={() => setFreshCodes(null)} />
       )}
 
       {setupMode && profile.isTwoFactorEnabled && (

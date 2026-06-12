@@ -12,6 +12,7 @@ export const TwoFactorVerifyPage = () => {
   const tempToken: string | undefined = (location.state as { tempToken?: string })?.tempToken;
 
   const [code, setCode] = useState("");
+  const [useBackup, setUseBackup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -29,7 +30,7 @@ export const TwoFactorVerifyPage = () => {
     try {
       const res = await axios.post(
         `${url}/auth/2fa/verify`,
-        { tempToken, code },
+        useBackup ? { tempToken, backupCode: code } : { tempToken, code },
         { withCredentials: true },
       );
       setAccessToken(res.data.accessToken);
@@ -38,8 +39,10 @@ export const TwoFactorVerifyPage = () => {
       } else {
         navigate("/profile");
       }
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? "Invalid code. Please try again.");
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message;
+      setError(message ?? "Invalid code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -67,29 +70,59 @@ export const TwoFactorVerifyPage = () => {
           </div>
 
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Enter the 6-digit code from your authenticator app (Google Authenticator, Authy, etc.)
+            {useBackup
+              ? "Enter one of your one-time backup codes (e.g. a1b2-c3d4). Each code works only once."
+              : "Enter the 6-digit code from your authenticator app (Google Authenticator, Authy, etc.)"}
           </p>
 
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={6}
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            placeholder="000000"
-            className="w-full text-center text-2xl tracking-[0.5em] px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
-            autoFocus
-          />
+          {useBackup ? (
+            <input
+              type="text"
+              maxLength={9}
+              value={code}
+              onChange={(e) =>
+                setCode(e.target.value.toLowerCase().replace(/[^0-9a-f-]/g, ""))
+              }
+              placeholder="xxxx-xxxx"
+              className="w-full text-center text-2xl tracking-[0.2em] font-mono px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
+              autoFocus
+            />
+          ) : (
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+              placeholder="000000"
+              className="w-full text-center text-2xl tracking-[0.5em] px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
+              autoFocus
+            />
+          )}
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 
           <button
             type="submit"
-            disabled={loading || code.length !== 6}
+            disabled={loading || (useBackup ? code.length < 8 : code.length !== 6)}
             className="cursor-pointer bg-blue-500 text-white px-5 py-2 text-sm rounded-md hover:bg-blue-600 transition-colors font-medium disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Verifying..." : "Verify Code"}
+            {loading ? "Verifying..." : useBackup ? "Use Backup Code" : "Verify Code"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setUseBackup((prev) => !prev);
+              setCode("");
+              setError(null);
+            }}
+            className="cursor-pointer text-sm text-gray-500 dark:text-gray-400 hover:underline text-center"
+          >
+            {useBackup
+              ? "Use authenticator code instead"
+              : "Lost your device? Use a backup code"}
           </button>
 
           <button
