@@ -5,6 +5,7 @@ import { AuthHeader } from "../../components/auth/AuthHeader";
 import { SocialAuthButtons } from "../../components/auth/SocialAuthButtons";
 import { AppSidePreview } from "./components/AppSidePreview";
 import { LoginForm } from "./sections/LoginForm";
+import { PasskeyLoginButton } from "./sections/PasskeyLoginButton";
 
 export const LoginPage = () => {
   const { theme, toggleTheme } = useTheme();
@@ -36,6 +37,8 @@ export const LoginPage = () => {
           />
 
           <LoginForm />
+
+          <PasskeyLoginButton />
 
           <p className="text-center mt-6 text-[13px] text-[#5a625e] dark:text-[#a0a8a3]">
             Don't have an account?{" "}

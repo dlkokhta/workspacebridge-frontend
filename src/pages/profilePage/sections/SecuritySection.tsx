@@ -5,6 +5,7 @@ import { Row } from "../components/Row";
 import { SectionHeader } from "../components/SectionHeader";
 import { SmallBtn } from "../components/SmallBtn";
 import { BackupCodesRow } from "./security/BackupCodesRow";
+import { PasskeysRow } from "./security/PasskeysRow";
 import { PasswordChangeRow } from "./security/PasswordChangeRow";
 import { SessionsRow } from "./security/SessionsRow";
 import { TwoFactorRow } from "./security/TwoFactorRow";
@@ -39,6 +40,8 @@ export const SecuritySection = ({ profile, onLogout }: SecuritySectionProps) => 
         {profile.isTwoFactorEnabled && (
           <BackupCodesRow onSuccess={showSuccess} />
         )}
+
+        <PasskeysRow onSuccess={showSuccess} />
 
         <SessionsRow onSuccess={showSuccess} />
 
