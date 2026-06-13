@@ -6,6 +6,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import { SmallBtn } from "../components/SmallBtn";
 import { BackupCodesRow } from "./security/BackupCodesRow";
 import { ChangeEmailRow } from "./security/ChangeEmailRow";
+import { ConnectionsRow } from "./security/ConnectionsRow";
 import { PasskeysRow } from "./security/PasskeysRow";
 import { PasswordChangeRow } from "./security/PasswordChangeRow";
 import { SessionsRow } from "./security/SessionsRow";
@@ -51,6 +52,8 @@ export const SecuritySection = ({ profile, onLogout }: SecuritySectionProps) => 
         )}
 
         <PasskeysRow onSuccess={showSuccess} />
+
+        <ConnectionsRow onSuccess={showSuccess} />
 
         <SessionsRow onSuccess={showSuccess} />
 
