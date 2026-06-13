@@ -4,7 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext";
+import { axiosInstance, useAuth } from "../../../context/AuthContext";
 import { loginSchema } from "../../../schemas";
 import type { loginTypes } from "../../../types/loginTypes";
 
@@ -30,17 +30,39 @@ export const LoginForm = () => {
   const { setAccessToken } = useAuth();
   const [responseError, setResponseError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  // Shown only after a login is refused because the email isn't verified yet,
+  // so the user can request a fresh verification link without leaving the page.
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendStatus, setResendStatus] = useState<
+    "idle" | "sending" | "sent"
+  >("idle");
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
     reset,
   } = useForm({ resolver: yupResolver(loginSchema) });
 
   const url = import.meta.env.VITE_API_URL;
 
+  const handleResend = async () => {
+    const email = getValues("email");
+    if (!email) return;
+    setResendStatus("sending");
+    try {
+      await axiosInstance.post("/auth/resend-verification", { email });
+    } catch {
+      // The endpoint is intentionally generic; treat any outcome as "sent" so
+      // we never reveal whether the address exists.
+    }
+    setResendStatus("sent");
+  };
+
   const onSubmit = async (data: loginTypes) => {
+    setNeedsVerification(false);
+    setResendStatus("idle");
     try {
       const response = await axios.post<LoginResponse>(
         `${url}/auth/login`,
@@ -63,9 +85,10 @@ export const LoginForm = () => {
       navigate(dashboardForRole(response.data.user.role));
       reset();
     } catch (error: unknown) {
-      setResponseError(
-        extractApiMessage(error) ?? "An error occurred. Please try again.",
-      );
+      const message =
+        extractApiMessage(error) ?? "An error occurred. Please try again.";
+      setResponseError(message);
+      setNeedsVerification(/verify your email/i.test(message));
     }
   };
 
@@ -92,6 +115,24 @@ export const LoginForm = () => {
         {!errors.email && responseError && (
           <p className="mt-1.5 text-[12px] text-red-500">{responseError}</p>
         )}
+        {needsVerification &&
+          (resendStatus === "sent" ? (
+            <p className="mt-1.5 text-[12px] text-[#3e6a4d] dark:text-[#6db383]">
+              If that account needs verifying, a new link is on its way. Check
+              your inbox.
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void handleResend()}
+              disabled={resendStatus === "sending"}
+              className="mt-1.5 text-[12px] font-medium text-[#5a8a6b] hover:text-[#4f7a5e] transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {resendStatus === "sending"
+                ? "Sending…"
+                : "Resend verification email"}
+            </button>
+          ))}
       </div>
 
       {/* Password */}
