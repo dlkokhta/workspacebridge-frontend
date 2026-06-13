@@ -7,6 +7,7 @@ export const ROUTES = {
   GoogleAuthSuccess: "/auth/success",
   Welcome: "/welcome",
   VerifyEmail: "/auth/verify-email",
+  ConfirmEmailChange: "/auth/confirm-email-change",
   PasswordRecovery: "/passwordRecovery",
   ResetPassword: "/auth/reset-password",
   AdminPanel: "/adminPanel",

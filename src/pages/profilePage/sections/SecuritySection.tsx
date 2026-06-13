@@ -5,6 +5,7 @@ import { Row } from "../components/Row";
 import { SectionHeader } from "../components/SectionHeader";
 import { SmallBtn } from "../components/SmallBtn";
 import { BackupCodesRow } from "./security/BackupCodesRow";
+import { ChangeEmailRow } from "./security/ChangeEmailRow";
 import { PasskeysRow } from "./security/PasskeysRow";
 import { PasswordChangeRow } from "./security/PasswordChangeRow";
 import { SessionsRow } from "./security/SessionsRow";
@@ -33,7 +34,15 @@ export const SecuritySection = ({ profile, onLogout }: SecuritySectionProps) => 
       )}
 
       <div className="mt-6">
-        {profile.method === "CREDENTIALS" && <PasswordChangeRow />}
+        {profile.method === "CREDENTIALS" && (
+          <>
+            <PasswordChangeRow />
+            <ChangeEmailRow
+              currentEmail={profile.email}
+              onSuccess={showSuccess}
+            />
+          </>
+        )}
 
         <TwoFactorRow profile={profile} onSuccess={showSuccess} />
 

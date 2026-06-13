@@ -8,6 +8,7 @@ export * from "./registerPage";
 export * from "./loginPage";
 export * from "./welcomePage";
 export * from "./verifyEmailPage";
+export * from "./confirmEmailChangePage";
 export * from "./forgotPasswordPage";
 export * from "./resetPasswordPage";
 export * from "./adminPage";

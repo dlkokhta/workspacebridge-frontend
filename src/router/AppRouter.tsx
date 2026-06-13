@@ -14,6 +14,7 @@ import { GoogleAuthSuccess } from "../pages/googleAuthSuccess";
 import { WelcomePage } from "../pages/welcomePage";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { VerifyEmailPage } from "../pages/verifyEmailPage";
+import { ConfirmEmailChangePage } from "../pages/confirmEmailChangePage";
 import { ForgotPasswordPage } from "../pages/forgotPasswordPage";
 import { ResetPasswordPage } from "../pages/resetPasswordPage";
 import { AdminPage } from "../pages/adminPage";
@@ -36,6 +37,10 @@ export const AppRouter = () => {
       />
       <Route path={ROUTES.GoogleAuthSuccess} element={<GoogleAuthSuccess />} />
       <Route path={ROUTES.VerifyEmail} element={<VerifyEmailPage />} />
+      <Route
+        path={ROUTES.ConfirmEmailChange}
+        element={<ConfirmEmailChangePage />}
+      />
       <Route path={ROUTES.PasswordRecovery} element={<ForgotPasswordPage />} />
       <Route path={ROUTES.ResetPassword} element={<ResetPasswordPage />} />
       <Route path={ROUTES.TwoFactorVerify} element={<TwoFactorVerifyPage />} />
