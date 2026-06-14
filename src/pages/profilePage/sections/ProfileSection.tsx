@@ -7,8 +7,7 @@ import {
 } from "../../../hooks/useCurrentUser";
 import { Row } from "../components/Row";
 import { SectionHeader } from "../components/SectionHeader";
-import { SmallBtn } from "../components/SmallBtn";
-import { getInitials } from "../../../utils/getInitials";
+import { AvatarRow } from "./profile/AvatarRow";
 
 interface ProfileSectionProps {
   profile: UserProfile;
@@ -60,22 +59,7 @@ export const ProfileSection = ({ profile }: ProfileSectionProps) => {
     <>
       <SectionHeader title="Profile" desc="How you appear in workspaces." />
       <div className="mt-6">
-        <Row title="Avatar" desc="A square image, at least 200×200.">
-          {profile.picture ? (
-            <img
-              src={profile.picture}
-              alt="avatar"
-              className="w-14 h-14 rounded-lg object-cover"
-            />
-          ) : (
-            <div className="w-14 h-14 rounded-lg bg-[#5a8a6b] text-white flex items-center justify-center text-[18px] font-semibold">
-              {getInitials(profile)}
-            </div>
-          )}
-          <SmallBtn disabled title="Coming soon">
-            Change
-          </SmallBtn>
-        </Row>
+        <AvatarRow profile={profile} />
 
         <form onSubmit={handleSubmit}>
           <Row title="First name" desc="Shown to clients in messages.">
