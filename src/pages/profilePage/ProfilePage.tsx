@@ -10,6 +10,7 @@ import { WorkspaceSection } from "./sections/WorkspaceSection";
 import { NotificationsSection } from "./sections/NotificationsSection";
 import { BillingSection } from "./sections/BillingSection";
 import { SecuritySection } from "./sections/SecuritySection";
+import { ActivitySection } from "./sections/ActivitySection";
 import { getInitials } from "../../utils/getInitials";
 import type { Section } from "./types";
 
@@ -66,6 +67,7 @@ export const ProfilePage = () => {
             {section === "security" && (
               <SecuritySection profile={profile} onLogout={handleLogout} />
             )}
+            {section === "activity" && <ActivitySection />}
           </div>
         </div>
       </div>

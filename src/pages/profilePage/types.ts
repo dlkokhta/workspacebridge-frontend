@@ -3,4 +3,5 @@ export type Section =
   | "workspace"
   | "notifications"
   | "billing"
-  | "security";
+  | "security"
+  | "activity";

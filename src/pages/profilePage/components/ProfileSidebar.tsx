@@ -1,4 +1,4 @@
-import { Bell, CreditCard, Folder, Lock, Users } from "lucide-react";
+import { Activity, Bell, CreditCard, Folder, Lock, Users } from "lucide-react";
 import type { Section } from "../types";
 
 interface ProfileSidebarProps {
@@ -12,6 +12,7 @@ const SECTIONS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: "notifications", label: "Notifications", icon: <Bell size={14} /> },
   { id: "billing", label: "Billing", icon: <CreditCard size={14} /> },
   { id: "security", label: "Security", icon: <Lock size={14} /> },
+  { id: "activity", label: "Activity", icon: <Activity size={14} /> },
 ];
 
 export const ProfileSidebar = ({ active, onChange }: ProfileSidebarProps) => (
