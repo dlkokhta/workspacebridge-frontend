@@ -32,10 +32,10 @@ const VALID_FORM = {
 
 async function fillForm(overrides: Partial<typeof VALID_FORM> = {}) {
   const data = { ...VALID_FORM, ...overrides };
-  await userEvent.type(screen.getByPlaceholderText('Enter your first name'), data.firstName);
-  await userEvent.type(screen.getByPlaceholderText('Enter your last name'), data.lastName);
-  await userEvent.type(screen.getByPlaceholderText('Enter your email'), data.email);
-  await userEvent.type(screen.getByPlaceholderText('Enter your password'), data.password);
+  await userEvent.type(screen.getByPlaceholderText('Devon'), data.firstName);
+  await userEvent.type(screen.getByPlaceholderText('Park'), data.lastName);
+  await userEvent.type(screen.getByPlaceholderText('you@studio.com'), data.email);
+  await userEvent.type(screen.getByPlaceholderText('At least 8 characters'), data.password);
   await userEvent.type(screen.getByPlaceholderText('Repeat your password'), data.repeatPassword);
 }
 
@@ -46,15 +46,15 @@ describe('RegistrationPage', () => {
 
   it('renders all form fields and a submit button', () => {
     renderRegisterPage();
-    expect(screen.getByPlaceholderText('Enter your first name')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter your last name')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter your email')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^submit$/i })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Devon')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Park')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('you@studio.com')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
   });
 
   it('shows validation error when submitting an empty form', async () => {
     renderRegisterPage();
-    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Enter your first name/i)).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe('RegistrationPage', () => {
 
     renderRegisterPage();
     await fillForm();
-    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
       expect(
@@ -80,7 +80,7 @@ describe('RegistrationPage', () => {
 
     renderRegisterPage();
     await fillForm();
-    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => screen.getByText(/Please check your email/i));
 
@@ -99,7 +99,7 @@ describe('RegistrationPage', () => {
 
     renderRegisterPage();
     await fillForm();
-    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/User already exists/i)).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe('RegistrationPage', () => {
 
     renderRegisterPage();
     await fillForm();
-    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Email is invalid/i)).toBeInTheDocument();
