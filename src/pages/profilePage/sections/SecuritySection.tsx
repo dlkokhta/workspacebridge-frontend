@@ -7,6 +7,7 @@ import { SmallBtn } from "../components/SmallBtn";
 import { BackupCodesRow } from "./security/BackupCodesRow";
 import { ChangeEmailRow } from "./security/ChangeEmailRow";
 import { ConnectionsRow } from "./security/ConnectionsRow";
+import { DeleteAccountRow } from "./security/DeleteAccountRow";
 import { PasskeysRow } from "./security/PasskeysRow";
 import { PasswordChangeRow } from "./security/PasswordChangeRow";
 import { SessionsRow } from "./security/SessionsRow";
@@ -63,6 +64,8 @@ export const SecuritySection = ({ profile, onLogout }: SecuritySectionProps) => 
             Sign out
           </SmallBtn>
         </Row>
+
+        <DeleteAccountRow />
       </div>
     </>
   );
