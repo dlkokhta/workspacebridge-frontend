@@ -84,7 +84,9 @@ describe('RegistrationPage', () => {
 
     await waitFor(() => screen.getByText(/Please check your email/i));
 
-    const closeButton = screen.getByRole('button', { name: /^close$/i });
+    const closeButton = screen.getByRole('button', {
+      name: /continue to sign in/i,
+    });
     await userEvent.click(closeButton);
 
     await waitFor(() => {
