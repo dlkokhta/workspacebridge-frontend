@@ -191,7 +191,7 @@ export const AppShell = () => {
               <img
                 src={profile.picture}
                 alt="avatar"
-                className="w-[22px] h-[22px] rounded-full object-cover shrink-0"
+                className="w-[30px] h-[30px] rounded-full object-cover shrink-0"
               />
             ) : (
               <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center bg-[#5a8a6b] text-white text-[10px] font-semibold shrink-0">

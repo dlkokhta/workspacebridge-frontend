@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
+import { useUnreadMessages } from "../../hooks/useUnreadMessages";
 import { useWorkspaces } from "../../hooks/useWorkspaces";
 import {
   useWorkspaceDetail,
@@ -120,6 +121,12 @@ export const WorkspacePage = () => {
 
   const clients = workspace?.members.filter((m) => m.role === "CLIENT") ?? [];
 
+  const messagesUnread = useUnreadMessages(
+    id,
+    profile?.id ?? "",
+    tab === "messages",
+  );
+
   return (
     <div className="h-screen grid lg:grid-cols-[248px_1fr] bg-[#fafaf7] dark:bg-[#0e1310] overflow-hidden">
       <WorkspaceSidebar
@@ -143,6 +150,7 @@ export const WorkspacePage = () => {
         <WorkspaceTabBar
           activeTab={tab}
           onTabChange={setTab}
+          messagesUnread={messagesUnread}
           clients={clients}
           onRemoveClient={setConfirmMember}
         />

@@ -2,7 +2,7 @@ import { CheckSquare, File, Link as LinkIcon, Lock, MessageCircle, Pencil, Setti
 import type { Tab, WorkspaceMember } from "../types";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
-  { id: "messages", label: "Messages", icon: <MessageCircle size={14} />, count: 3 },
+  { id: "messages", label: "Messages", icon: <MessageCircle size={14} /> },
   { id: "files", label: "Files", icon: <File size={14} />, count: 12 },
   { id: "whiteboard", label: "Whiteboard", icon: <Pencil size={14} /> },
   { id: "shared-links", label: "Shared Links", icon: <LinkIcon size={14} /> },
@@ -14,6 +14,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] 
 interface WorkspaceTabBarProps {
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
+  messagesUnread: number;
   clients: WorkspaceMember[];
   onRemoveClient: (member: WorkspaceMember) => void;
 }
@@ -21,11 +22,14 @@ interface WorkspaceTabBarProps {
 export const WorkspaceTabBar = ({
   activeTab,
   onTabChange,
+  messagesUnread,
   clients,
   onRemoveClient,
 }: WorkspaceTabBarProps) => (
   <div className="flex items-center border-b border-black/[0.06] dark:border-white/[0.05] bg-[#fafaf7] dark:bg-[#0e1310] px-6">
-    {TABS.map((t) => (
+    {TABS.map((t) => {
+      const count = t.id === "messages" ? messagesUnread : t.count;
+      return (
       <button
         key={t.id}
         onClick={() => onTabChange(t.id)}
@@ -37,7 +41,7 @@ export const WorkspaceTabBar = ({
       >
         {t.icon}
         {t.label}
-        {t.count != null && (
+        {count != null && count > 0 && (
           <span
             className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium ${
               activeTab === t.id
@@ -45,11 +49,12 @@ export const WorkspaceTabBar = ({
                 : "bg-black/[0.06] dark:bg-white/[0.06] text-[#858c87] dark:text-[#6e7672]"
             }`}
           >
-            {t.count}
+            {count}
           </span>
         )}
       </button>
-    ))}
+      );
+    })}
     {clients.map((m) => (
       <div key={m.id} className="relative group ml-1">
         {m.user.picture ? (
