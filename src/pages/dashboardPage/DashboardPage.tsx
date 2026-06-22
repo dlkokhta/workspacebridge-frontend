@@ -19,15 +19,7 @@ const STATUS_STYLE = {
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { profile, workspaces } = useOutletContext<AppShellContext>();
-
-  const getInitials = () => {
-    if (profile?.firstname && profile?.lastname)
-      return `${profile.firstname[0]}${profile.lastname[0]}`.toUpperCase();
-    if (profile?.firstname) return profile.firstname[0].toUpperCase();
-    if (profile?.email) return profile.email[0].toUpperCase();
-    return "?";
-  };
+  const { workspaces } = useOutletContext<AppShellContext>();
 
   const activeCount = workspaces.filter((w) => w.status === "ACTIVE").length;
   const completedCount = workspaces.filter((w) => w.status === "COMPLETED").length;
@@ -61,9 +53,6 @@ export const DashboardPage = () => {
           >
             <Bell size={14} />
           </button>
-          <div className="w-8 h-8 rounded-full bg-[#5a8a6b] text-white flex items-center justify-center text-[12px] font-medium">
-            {getInitials()}
-          </div>
         </div>
       </header>
 

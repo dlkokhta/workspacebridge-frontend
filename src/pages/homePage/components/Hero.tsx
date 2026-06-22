@@ -87,7 +87,7 @@ export const Hero = () => {
         >
           <span className="inline-flex items-center gap-1.5 h-[26px] px-2.5 rounded-full bg-[rgba(90,138,107,0.12)] text-[#5a8a6b] border border-[rgba(90,138,107,0.28)] text-xs font-medium mb-5">
             <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            Built for freelancers
+            Launching soon
           </span>
 
           <h1

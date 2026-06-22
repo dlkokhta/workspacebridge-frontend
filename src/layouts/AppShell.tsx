@@ -187,9 +187,17 @@ export const AppShell = () => {
           )}
 
           <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px]">
-            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center bg-[#5a8a6b] text-white text-[10px] font-semibold shrink-0">
-              {getInitials()}
-            </span>
+            {profile?.picture ? (
+              <img
+                src={profile.picture}
+                alt="avatar"
+                className="w-[22px] h-[22px] rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center bg-[#5a8a6b] text-white text-[10px] font-semibold shrink-0">
+                {getInitials()}
+              </span>
+            )}
             <span className="flex flex-col min-w-0 flex-1">
               <span className="font-medium text-[#1a201c] dark:text-[#e8ece9] truncate">
                 {profile?.firstname || profile?.lastname
