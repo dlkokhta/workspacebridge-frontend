@@ -18,6 +18,7 @@ import { WorkspaceTabBar } from "./components/WorkspaceTabBar";
 import { RemoveMemberModal } from "./components/RemoveMemberModal";
 import { MessagesTab } from "./messages/MessagesTab";
 import { FilesTab } from "./files/FilesTab";
+import { useNewFiles } from "./files/useNewFiles";
 import { WhiteboardTab } from "./whiteboard/WhiteboardTab";
 import { SharedLinksTab } from "./tabs/SharedLinksTab";
 import { SharedTasksTab } from "./sharedTasks/SharedTasksTab";
@@ -126,6 +127,7 @@ export const WorkspacePage = () => {
     profile?.id ?? "",
     tab === "messages",
   );
+  const filesHasNew = useNewFiles(id, tab === "files");
 
   return (
     <div className="h-screen grid lg:grid-cols-[248px_1fr] bg-[#fafaf7] dark:bg-[#0e1310] overflow-hidden">
@@ -151,6 +153,7 @@ export const WorkspacePage = () => {
           activeTab={tab}
           onTabChange={setTab}
           messagesUnread={messagesUnread}
+          filesHasNew={filesHasNew}
           clients={clients}
           onRemoveClient={setConfirmMember}
         />

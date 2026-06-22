@@ -33,6 +33,7 @@ export interface DownloadResponse {
 export const filesKeys = {
   list: (workspaceId: string) => ["files", workspaceId] as const,
   trash: (workspaceId: string) => ["files-trash", workspaceId] as const,
+  hasNew: (workspaceId: string) => ["files-new", workspaceId] as const,
 };
 
 export const extractFilesError = (err: unknown): string | null => {

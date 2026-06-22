@@ -3,7 +3,7 @@ import type { Tab, WorkspaceMember } from "../types";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
   { id: "messages", label: "Messages", icon: <MessageCircle size={14} /> },
-  { id: "files", label: "Files", icon: <File size={14} />, count: 12 },
+  { id: "files", label: "Files", icon: <File size={14} /> },
   { id: "whiteboard", label: "Whiteboard", icon: <Pencil size={14} /> },
   { id: "shared-links", label: "Shared Links", icon: <LinkIcon size={14} /> },
   { id: "todos", label: "Shared Tasks", icon: <CheckSquare size={14} /> },
@@ -15,6 +15,7 @@ interface WorkspaceTabBarProps {
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
   messagesUnread: number;
+  filesHasNew: boolean;
   clients: WorkspaceMember[];
   onRemoveClient: (member: WorkspaceMember) => void;
 }
@@ -23,6 +24,7 @@ export const WorkspaceTabBar = ({
   activeTab,
   onTabChange,
   messagesUnread,
+  filesHasNew,
   clients,
   onRemoveClient,
 }: WorkspaceTabBarProps) => (
@@ -51,6 +53,9 @@ export const WorkspaceTabBar = ({
           >
             {count}
           </span>
+        )}
+        {t.id === "files" && filesHasNew && (
+          <span className="w-1.5 h-1.5 rounded-full bg-[#5a8a6b]" />
         )}
       </button>
       );
