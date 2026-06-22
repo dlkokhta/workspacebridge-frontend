@@ -143,8 +143,6 @@ export const WorkspacePage = () => {
       <div className="flex flex-col overflow-hidden min-w-0">
         <WorkspaceTopbar
           workspaceName={workspace?.name}
-          profile={profile}
-          initials={initials}
           theme={theme}
           onToggleTheme={toggleTheme}
         />

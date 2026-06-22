@@ -1,19 +1,14 @@
 import { Moon, Share2, Sun } from "lucide-react";
-import type { UserProfile } from "../types";
 import { NotificationBell } from "../../../components/notifications/NotificationBell";
 
 interface WorkspaceTopbarProps {
   workspaceName?: string;
-  profile: UserProfile | null;
-  initials: string;
   theme: string;
   onToggleTheme: () => void;
 }
 
 export const WorkspaceTopbar = ({
   workspaceName,
-  profile,
-  initials,
   theme,
   onToggleTheme,
 }: WorkspaceTopbarProps) => (
@@ -38,13 +33,6 @@ export const WorkspaceTopbar = ({
         {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
       </button>
       <NotificationBell />
-      {profile?.picture ? (
-        <img src={profile.picture} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
-      ) : (
-        <div className="w-8 h-8 rounded-full bg-[#5a8a6b] text-white flex items-center justify-center text-[12px] font-medium">
-          {initials}
-        </div>
-      )}
     </div>
   </header>
 );
