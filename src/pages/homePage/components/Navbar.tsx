@@ -8,8 +8,8 @@ export const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/[0.06] dark:border-white/[0.07] bg-[#fafaf7]/90 dark:bg-[#0e1310]/90 backdrop-blur-md">
-      <div className="max-w-[1200px] mx-auto px-8 h-14 flex items-center justify-between">
+    <header className="sticky top-0 z-50 px-8 border-b border-black/[0.06] dark:border-white/[0.07] bg-[#fafaf7]/90 dark:bg-[#0e1310]/90 backdrop-blur-md">
+      <div className="max-w-[1200px] mx-auto h-14 flex items-center justify-between">
         <a href="/" className="flex items-center gap-2 text-[#1a201c] dark:text-[#e8ece9] no-underline">
           <span className="w-[22px] h-[22px] rounded-[6px] bg-[#5a8a6b] text-white flex items-center justify-center shrink-0">
             <LogoIcon size={12} />
