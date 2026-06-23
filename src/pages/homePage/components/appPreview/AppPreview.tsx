@@ -21,7 +21,7 @@ export const AppPreview = () => (
           <div className="w-8" />
         </div>
 
-        <div className="grid grid-cols-[220px_1fr]" style={{ height: 520 }}>
+        <div className="grid grid-cols-1 md:grid-cols-[220px_1fr]" style={{ height: 520 }}>
           <PreviewSidebar />
           <PreviewMain />
         </div>

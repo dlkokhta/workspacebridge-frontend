@@ -20,7 +20,7 @@ export const HowItWorks = () => (
           Three steps to a calmer client relationship.
         </h2>
       </div>
-      <div className="grid grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <Step n="1" title="Create a workspace for your client"
           desc="Name the project, pick a color, and add a description. Takes about 30 seconds." />
         <Step n="2" title="Invite your client with one link"

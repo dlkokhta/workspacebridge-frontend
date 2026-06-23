@@ -25,7 +25,7 @@ const WORKSPACES = [
 ];
 
 export const PreviewSidebar = () => (
-  <div className="bg-[#f3f3ee] dark:bg-[#0a0f0c] border-r border-black/[0.06] dark:border-white/[0.05] flex flex-col">
+  <div className="hidden md:flex bg-[#f3f3ee] dark:bg-[#0a0f0c] border-r border-black/[0.06] dark:border-white/[0.05] flex-col">
     <div className="px-3 py-3 flex items-center gap-2">
       <span className="w-5 h-5 rounded-[5px] bg-[#5a8a6b] text-white flex items-center justify-center shrink-0">
         <LogoIcon size={11} />

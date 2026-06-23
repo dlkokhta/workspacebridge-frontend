@@ -27,7 +27,7 @@ export const Features = () => (
           Built for the way freelancers actually work.
         </h2>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FeatureCard icon={MessageCircle} title="Real-time messaging"
           desc="Threaded conversations per project, with read receipts and typing indicators. No more digging through email threads to find one decision." />
         <FeatureCard icon={FileText} title="File delivery with comments"
