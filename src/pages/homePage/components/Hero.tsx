@@ -79,7 +79,7 @@ export const Hero = () => {
 
   return (
     <section className="py-20 px-8">
-      <div className="max-w-[1200px] mx-auto grid grid-cols-[1.1fr_0.9fr] gap-16 items-center">
+      <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -125,6 +125,7 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="hidden lg:block"
         >
           <HeroSideCard />
         </motion.div>
