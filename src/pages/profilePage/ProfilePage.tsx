@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { axiosInstance, useAuth } from "../../context/AuthContext";
+import type { AppShellContext } from "../../layouts/AppShell";
 import { useTheme } from "../../context/ThemeContext";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { ProfileTopbar } from "./components/ProfileTopbar";
@@ -18,6 +19,7 @@ export const ProfilePage = () => {
   const navigate = useNavigate();
   const { setAccessToken } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { onOpenSidebar } = useOutletContext<AppShellContext>();
 
   const profileQuery = useCurrentUser();
   const profile = profileQuery.data ?? null;
@@ -53,6 +55,7 @@ export const ProfilePage = () => {
         initials={getInitials(profile)}
         theme={theme}
         onToggleTheme={toggleTheme}
+        onOpenSidebar={onOpenSidebar}
       />
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-[220px_1fr] overflow-hidden min-h-0">

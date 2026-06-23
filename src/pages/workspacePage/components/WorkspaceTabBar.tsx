@@ -28,14 +28,14 @@ export const WorkspaceTabBar = ({
   clients,
   onRemoveClient,
 }: WorkspaceTabBarProps) => (
-  <div className="flex items-center border-b border-black/[0.06] dark:border-white/[0.05] bg-[#fafaf7] dark:bg-[#0e1310] px-6">
+  <div className="flex items-center border-b border-black/[0.06] dark:border-white/[0.05] bg-[#fafaf7] dark:bg-[#0e1310] px-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
     {TABS.map((t) => {
       const count = t.id === "messages" ? messagesUnread : t.count;
       return (
       <button
         key={t.id}
         onClick={() => onTabChange(t.id)}
-        className={`flex items-center gap-1.5 h-11 px-1 mr-5 text-[13px] font-medium border-b-2 transition-colors cursor-pointer ${
+        className={`flex items-center gap-1.5 h-11 px-1 mr-5 shrink-0 text-[13px] font-medium border-b-2 transition-colors cursor-pointer ${
           activeTab === t.id
             ? "border-[#5a8a6b] text-[#1a201c] dark:text-[#e8ece9]"
             : "border-transparent text-[#5a625e] dark:text-[#a0a8a3] hover:text-[#1a201c] dark:hover:text-[#e8ece9]"

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
-import { Bell, Moon, Plus, Sun } from "lucide-react";
+import { Bell, Menu, Moon, Plus, Sun } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import type { AppShellContext } from "../../layouts/AppShell";
 
@@ -19,7 +19,7 @@ const STATUS_STYLE = {
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { workspaces } = useOutletContext<AppShellContext>();
+  const { workspaces, onOpenSidebar } = useOutletContext<AppShellContext>();
 
   const activeCount = workspaces.filter((w) => w.status === "ACTIVE").length;
   const completedCount = workspaces.filter((w) => w.status === "COMPLETED").length;
@@ -28,9 +28,18 @@ export const DashboardPage = () => {
     <div className="flex flex-col overflow-hidden min-w-0">
       {/* Topbar */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-black/[0.06] dark:border-white/[0.05] bg-[#fafaf7] dark:bg-[#0e1310]">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-[#858c87] dark:text-[#6e7672]">WorkspaceBridge</div>
-          <div className="text-[16px] font-semibold mt-0.5 text-[#1a201c] dark:text-[#e8ece9]">Dashboard</div>
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onOpenSidebar}
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#1c221e] text-[#5a625e] dark:text-[#a0a8a3] hover:bg-[#f6f6f1] dark:hover:bg-[#222b26] transition-colors cursor-pointer shrink-0"
+            aria-label="Open menu"
+          >
+            <Menu size={16} />
+          </button>
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-[0.08em] font-medium text-[#858c87] dark:text-[#6e7672]">WorkspaceBridge</div>
+            <div className="text-[16px] font-semibold mt-0.5 text-[#1a201c] dark:text-[#e8ece9]">Dashboard</div>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button

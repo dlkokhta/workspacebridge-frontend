@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { Outlet, useNavigate, Link } from "react-router-dom";
-import { LayoutDashboard, LogOut, Plus, Search, Settings, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
+import { LayoutDashboard, LogOut, Plus, Search, Settings, ShieldCheck, X } from "lucide-react";
 import { axiosInstance, useAuth } from "../context/AuthContext";
 import { useCurrentUser, type UserProfile } from "../hooks/useCurrentUser";
 import { useWorkspaces, type Workspace } from "../hooks/useWorkspaces";
@@ -11,13 +11,19 @@ export interface AppShellContext {
   profile: UserProfile | null;
   workspaces: Workspace[];
   refetchWorkspaces: () => Promise<void>;
+  onOpenSidebar: () => void;
 }
 
 export const AppShell = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setAccessToken } = useAuth();
   const { open: searchOpen, setOpen: setSearchOpen, close: closeSearch } =
     useSearchPalette();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close the mobile sidebar drawer whenever the route changes.
+  useEffect(() => setSidebarOpen(false), [location.pathname]);
 
   const profileQuery = useCurrentUser();
   const workspacesQuery = useWorkspaces();
@@ -65,12 +71,29 @@ export const AppShell = () => {
     );
   }
 
-  const context: AppShellContext = { profile, workspaces, refetchWorkspaces };
+  const context: AppShellContext = {
+    profile,
+    workspaces,
+    refetchWorkspaces,
+    onOpenSidebar: () => setSidebarOpen(true),
+  };
 
   return (
     <div className="h-screen grid grid-cols-1 lg:grid-cols-[248px_1fr] bg-[#fafaf7] dark:bg-[#0e1310] overflow-hidden">
+      {/* Mobile drawer backdrop */}
+      <div
+        className={`fixed inset-0 z-30 bg-black/40 lg:hidden transition-opacity duration-200 ${
+          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden
+      />
       {/* Sidebar */}
-      <aside className="hidden lg:flex flex-col bg-[#f3f3ee] dark:bg-[#0a0f0c] border-r border-black/[0.06] dark:border-white/[0.05] overflow-hidden">
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-[248px] flex flex-col bg-[#f3f3ee] dark:bg-[#0a0f0c] border-r border-black/[0.06] dark:border-white/[0.05] overflow-hidden transition-transform duration-200 lg:static lg:z-auto lg:w-auto lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         {/* Logo */}
         <div className="flex items-center justify-between px-4 pt-[18px] pb-3">
           <Link
@@ -85,13 +108,22 @@ export const AppShell = () => {
             </span>
             WorkspaceBridge
           </Link>
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
-            title="Search (⌘K)"
-          >
-            <Search size={14} />
-          </button>
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
+              title="Search (⌘K)"
+            >
+              <Search size={14} />
+            </button>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
+              title="Close menu"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Search bar */}
