@@ -32,7 +32,7 @@ const PriceCard = ({
     )}
     <div className="text-[14px] font-medium text-[#1a201c] dark:text-[#e8ece9] mb-3">{name}</div>
     <div className="flex items-baseline gap-1.5 mb-6">
-      <span className="text-[44px] font-semibold text-[#1a201c] dark:text-[#e8ece9] tracking-[-0.025em] leading-none">{price}</span>
+      <span className="text-[36px] sm:text-[44px] font-semibold text-[#1a201c] dark:text-[#e8ece9] tracking-[-0.025em] leading-none">{price}</span>
       <span className="text-[14px] text-[#858c87] dark:text-[#6e7672]">{period}</span>
     </div>
     <button
@@ -67,7 +67,7 @@ export const Pricing = () => {
             Free until you outgrow it.
           </h2>
         </div>
-        <div className="grid grid-cols-2 gap-4 max-w-[880px] mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[880px] mx-auto">
           <PriceCard
             name="Free" price="$0" period="forever"
             features={["3 active workspaces", "Unlimited messages", "5 GB file storage", "Whiteboard & shared links"]}
