@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { LayoutDashboard, LogOut, Plus, Search, Settings as SettingsIcon } from "lucide-react";
+import { LayoutDashboard, LogOut, Plus, Search, Settings as SettingsIcon, X } from "lucide-react";
 import type { UserProfile, Workspace } from "../types";
 
 interface WorkspaceSidebarProps {
@@ -7,6 +7,8 @@ interface WorkspaceSidebarProps {
   workspaces: Workspace[];
   profile: UserProfile | null;
   initials: string;
+  isOpen: boolean;
+  onClose: () => void;
   onLogout: () => void;
   onOpenSearch: () => void;
 }
@@ -16,6 +18,8 @@ export const WorkspaceSidebar = ({
   workspaces,
   profile,
   initials,
+  isOpen,
+  onClose,
   onLogout,
   onOpenSearch,
 }: WorkspaceSidebarProps) => {
@@ -26,7 +30,19 @@ export const WorkspaceSidebar = ({
     : profile?.email ?? "";
 
   return (
-    <aside className="hidden lg:flex flex-col bg-[#f3f3ee] dark:bg-[#0a0f0c] border-r border-black/[0.06] dark:border-white/[0.05] overflow-hidden">
+    <>
+      <div
+        className={`fixed inset-0 z-30 bg-black/40 lg:hidden transition-opacity duration-200 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+        aria-hidden
+      />
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-[248px] flex flex-col bg-[#f3f3ee] dark:bg-[#0a0f0c] border-r border-black/[0.06] dark:border-white/[0.05] overflow-hidden transition-transform duration-200 lg:static lg:z-auto lg:w-auto lg:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
       <div className="flex items-center justify-between px-4 pt-[18px] pb-3">
         <Link
           to="/dashboard"
@@ -40,13 +56,22 @@ export const WorkspaceSidebar = ({
           </span>
           WorkspaceBridge
         </Link>
-        <button
-          onClick={onOpenSearch}
-          className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer"
-          title="Search (⌘K)"
-        >
-          <Search size={14} />
-        </button>
+        <div className="flex items-center gap-0.5">
+          <button
+            onClick={onOpenSearch}
+            className="w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer"
+            title="Search (⌘K)"
+          >
+            <Search size={14} />
+          </button>
+          <button
+            onClick={onClose}
+            className="lg:hidden w-7 h-7 flex items-center justify-center rounded-md text-[#858c87] dark:text-[#6e7672] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer"
+            title="Close menu"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
 
       <div className="px-3">
@@ -85,7 +110,10 @@ export const WorkspaceSidebar = ({
         {workspaces.map((w) => (
           <button
             key={w.id}
-            onClick={() => navigate(`/workspace/${w.id}`)}
+            onClick={() => {
+              navigate(`/workspace/${w.id}`);
+              onClose();
+            }}
             className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors cursor-pointer ${
               w.id === activeId
                 ? "bg-[#5a8a6b]/10 text-[#1a201c] dark:text-[#e8ece9]"
@@ -153,6 +181,7 @@ export const WorkspaceSidebar = ({
           </button>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };

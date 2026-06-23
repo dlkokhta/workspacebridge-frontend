@@ -48,6 +48,10 @@ export const WorkspacePage = () => {
   const { open: searchOpen, setOpen: setSearchOpen, close: closeSearch } =
     useSearchPalette();
   const [confirmMember, setConfirmMember] = useState<WorkspaceMember | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close the mobile sidebar drawer whenever the active workspace changes.
+  useEffect(() => setSidebarOpen(false), [id]);
 
   // Open the tab named in the URL (?tab=…) — used by global search click-through.
   useEffect(() => {
@@ -136,6 +140,8 @@ export const WorkspacePage = () => {
         workspaces={workspaces}
         profile={profile}
         initials={initials}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
         onLogout={handleLogout}
         onOpenSearch={() => setSearchOpen(true)}
       />
@@ -145,6 +151,7 @@ export const WorkspacePage = () => {
           workspaceName={workspace?.name}
           theme={theme}
           onToggleTheme={toggleTheme}
+          onOpenSidebar={() => setSidebarOpen(true)}
         />
 
         <WorkspaceTabBar
