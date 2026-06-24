@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
-import { useWhiteboardSocket } from "../../../../hooks/useWhiteboardSocket";
+import type { Socket } from "socket.io-client";
 import { useWhiteboardVersions } from "../../../../hooks/useWhiteboardVersions";
 import { useTheme } from "../../../../context/ThemeContext";
 import { useAuth } from "../../../../context/AuthContext";
@@ -16,10 +16,17 @@ import { useCollaboratorCursors } from "./hooks/useCollaboratorCursors";
 
 interface WhiteboardCanvasProps {
   boardId: string;
+  // Shared with the board-list sync; owned by WhiteboardTab so both layers use
+  // a single whiteboard connection.
+  socket: Socket | null;
+  connected: boolean;
 }
 
-export const WhiteboardCanvas = ({ boardId }: WhiteboardCanvasProps) => {
-  const { socket, connected } = useWhiteboardSocket();
+export const WhiteboardCanvas = ({
+  boardId,
+  socket,
+  connected,
+}: WhiteboardCanvasProps) => {
   const { theme } = useTheme();
   const { accessToken } = useAuth();
   const currentUserId = useMemo(

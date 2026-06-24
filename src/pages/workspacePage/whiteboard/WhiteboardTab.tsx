@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from "react";
+import { useWhiteboardSocket } from "../../../hooks/useWhiteboardSocket";
 import { TemplatePickerModal } from "./templatePicker/TemplatePickerModal";
 import { BoardTabsBar } from "./boards/BoardTabsBar";
 import { DeleteBoardModal } from "./boards/DeleteBoardModal";
@@ -12,9 +13,15 @@ const WhiteboardCanvas = lazy(() =>
 
 interface WhiteboardTabProps {
   workspaceId: string;
+  // The workspace owner (freelancer) is the presenter whose board switches
+  // clients follow. Clients (portal) pass false.
+  isOwner: boolean;
 }
 
-export const WhiteboardTab = ({ workspaceId }: WhiteboardTabProps) => {
+export const WhiteboardTab = ({ workspaceId, isOwner }: WhiteboardTabProps) => {
+  // One whiteboard socket for the whole tab: it carries both the board-list
+  // sync (here) and the per-board scene sync (passed down to the canvas).
+  const { socket, connected } = useWhiteboardSocket();
   const {
     boards,
     selectedId,
@@ -25,7 +32,7 @@ export const WhiteboardTab = ({ workspaceId }: WhiteboardTabProps) => {
     renameBoard,
     duplicateBoard,
     deleteBoard,
-  } = useBoards(workspaceId);
+  } = useBoards(workspaceId, { socket, connected, isOwner });
 
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [confirmBoard, setConfirmBoard] = useState<BoardSummary | null>(null);
@@ -72,7 +79,11 @@ export const WhiteboardTab = ({ workspaceId }: WhiteboardTabProps) => {
           </div>
         }
       >
-        <WhiteboardCanvas boardId={selectedId} />
+        <WhiteboardCanvas
+          boardId={selectedId}
+          socket={socket}
+          connected={connected}
+        />
       </Suspense>
       <TemplatePickerModal
         isOpen={templatePickerOpen}

@@ -1,12 +1,22 @@
 import { useCallback } from "react";
+import type { Socket } from "socket.io-client";
 import { useBoardMutations } from "./useBoardMutations";
 import { useBoardsList } from "./useBoardsList";
 import type { UseBoardsResult } from "./boardsKeys";
 
 export type { BoardSummary } from "./boardsKeys";
 
-export const useBoards = (workspaceId: string): UseBoardsResult => {
-  const list = useBoardsList(workspaceId);
+interface BoardSyncOptions {
+  socket: Socket | null;
+  connected: boolean;
+  isOwner: boolean;
+}
+
+export const useBoards = (
+  workspaceId: string,
+  sync: BoardSyncOptions,
+): UseBoardsResult => {
+  const list = useBoardsList(workspaceId, sync);
   const mutations = useBoardMutations({
     workspaceId,
     setSelectedId: list.setSelectedId,

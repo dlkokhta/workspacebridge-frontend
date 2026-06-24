@@ -106,7 +106,7 @@ export const PortalPage = () => {
           />
         )}
         {tab === "whiteboard" && workspace && (
-          <WhiteboardTab workspaceId={workspace.id} />
+          <WhiteboardTab workspaceId={workspace.id} isOwner={false} />
         )}
         {tab === "shared-links" && workspace && (
           <SharedLinksTab workspaceId={workspace.id} />

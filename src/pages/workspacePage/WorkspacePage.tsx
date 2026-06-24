@@ -178,7 +178,12 @@ export const WorkspacePage = () => {
               workspaceOwnerId={workspace.ownerId}
             />
           )}
-          {tab === "whiteboard" && <WhiteboardTab workspaceId={id} />}
+          {tab === "whiteboard" && (
+            <WhiteboardTab
+              workspaceId={id}
+              isOwner={!!profile && workspace?.ownerId === profile.id}
+            />
+          )}
           {tab === "shared-links" && <SharedLinksTab workspaceId={id} />}
           {tab === "todos" && <SharedTasksTab workspaceId={id} />}
           {tab === "my-tasks" && <MyTasksTab workspaceId={id} />}
