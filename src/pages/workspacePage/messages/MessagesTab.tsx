@@ -72,6 +72,9 @@ export const MessagesTab = ({
     socket.on("newMessage", onNewMessage);
 
     return () => {
+      // Tell the server the Messages tab is closing so new-message
+      // notifications resume; the socket stays in the room for the unread badge.
+      socket.emit("leaveRoom", { workspaceId });
       socket.off("messageHistory", onHistory);
       socket.off("olderMessages", onOlder);
       socket.off("newMessage", onNewMessage);
