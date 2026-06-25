@@ -1,6 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { io, type Socket } from "socket.io-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { axiosInstance } from "../../../context/AuthContext";
+import { axiosInstance, useAuth } from "../../../context/AuthContext";
 import {
   extractFilesError,
   filesKeys,
@@ -10,6 +11,7 @@ import {
 } from "./filesKeys";
 
 export const useFilesList = (workspaceId: string) => {
+  const { accessToken } = useAuth();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -23,6 +25,44 @@ export const useFilesList = (workspaceId: string) => {
       return data;
     },
   });
+
+  // Real-time sync: a file uploaded, deleted, or restored by the other side
+  // updates the active list without a refresh. Dedup by id so the originator's
+  // own optimistic update plus the echoed broadcast stay stable.
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const socket: Socket = io(`${import.meta.env.VITE_SOCKET_URL}/files`, {
+      auth: { token: accessToken },
+      transports: ["websocket"],
+    });
+
+    socket.on("connect", () => {
+      socket.emit("joinFilesRoom", { workspaceId });
+    });
+
+    socket.on("fileCreated", (file: FileSummary) => {
+      queryClient.setQueryData<FileSummary[]>(
+        filesKeys.list(workspaceId),
+        (prev) => {
+          if (!prev) return [file];
+          if (prev.some((f) => f.id === file.id)) return prev;
+          return [file, ...prev];
+        },
+      );
+    });
+
+    socket.on("fileDeleted", ({ id }: { id: string }) => {
+      queryClient.setQueryData<FileSummary[]>(
+        filesKeys.list(workspaceId),
+        (prev) => prev?.filter((f) => f.id !== id),
+      );
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [workspaceId, accessToken, queryClient]);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {

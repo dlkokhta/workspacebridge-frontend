@@ -1,7 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { isAxiosError } from "axios";
+import { io, type Socket } from "socket.io-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { axiosInstance } from "../../../context/AuthContext";
+import { axiosInstance, useAuth } from "../../../context/AuthContext";
 import type { SharedLink } from "../types";
 
 interface CreateSharedLinkInput {
@@ -35,6 +36,7 @@ const keys = {
 };
 
 export const useSharedLinks = (workspaceId: string): UseSharedLinksResult => {
+  const { accessToken } = useAuth();
   const queryClient = useQueryClient();
   const [mutationError, setMutationError] = useState<string | null>(null);
 
@@ -47,6 +49,39 @@ export const useSharedLinks = (workspaceId: string): UseSharedLinksResult => {
       return data;
     },
   });
+
+  // Real-time sync: socket events write straight into the React Query cache so
+  // a link added or removed by the other side shows up without a refresh.
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const socket: Socket = io(
+      `${import.meta.env.VITE_SOCKET_URL}/shared-links`,
+      { auth: { token: accessToken }, transports: ["websocket"] },
+    );
+
+    socket.on("connect", () => {
+      socket.emit("joinSharedLinksRoom", { workspaceId });
+    });
+
+    socket.on("sharedLinkCreated", (link: SharedLink) => {
+      queryClient.setQueryData<SharedLink[]>(keys.list(workspaceId), (prev) => {
+        if (!prev) return [link];
+        if (prev.some((l) => l.id === link.id)) return prev;
+        return [link, ...prev];
+      });
+    });
+
+    socket.on("sharedLinkDeleted", ({ id }: { id: string }) => {
+      queryClient.setQueryData<SharedLink[]>(keys.list(workspaceId), (prev) =>
+        prev?.filter((l) => l.id !== id),
+      );
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [workspaceId, accessToken, queryClient]);
 
   const addMutation = useMutation({
     mutationFn: async (input: CreateSharedLinkInput) => {
