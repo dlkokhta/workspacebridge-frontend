@@ -1,40 +1,48 @@
-import { useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { ArrowRight, Check, Copy } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Check, Copy, Link2 } from "lucide-react";
 import { axiosInstance } from "../../../context/AuthContext";
 import { extractApiMessage } from "../utils/extractApiMessage";
 
 interface InviteClientStepProps {
-  workspaceId: string;
+  /**
+   * Persists the workspace (exactly once) and resolves its id. Called lazily —
+   * only when the user takes a committing action here — so leaving onboarding
+   * without acting never creates a workspace.
+   */
+  ensureWorkspace: () => Promise<string>;
   onBack: () => void;
   onComplete: (payload: { email: string; sent: boolean }) => void;
 }
 
 export const InviteClientStep = ({
-  workspaceId,
+  ensureWorkspace,
   onBack,
   onComplete,
 }: InviteClientStepProps) => {
   const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Pre-generate a shareable invite link as soon as we enter this step.
-  useEffect(() => {
-    axiosInstance
-      .post<{ link: string }>(`/workspace/${workspaceId}/invite/link`)
-      .then((r) => setInviteLink(r.data.link))
-      .catch(() => undefined);
-  }, [workspaceId]);
-
-  const inviteMutation = useMutation({
-    mutationFn: async (vars: { workspaceId: string; email: string }) => {
-      await axiosInstance.post(`/workspace/${vars.workspaceId}/invite`, {
-        email: vars.email,
-      });
-    },
-  });
+  const handleGenerateLink = async () => {
+    setError(null);
+    setLinkLoading(true);
+    try {
+      const id = await ensureWorkspace();
+      const { data } = await axiosInstance.post<{ link: string }>(
+        `/workspace/${id}/invite/link`,
+      );
+      setInviteLink(data.link);
+    } catch (err: unknown) {
+      setError(
+        extractApiMessage(err) ?? "Failed to generate link. Please try again.",
+      );
+    } finally {
+      setLinkLoading(false);
+    }
+  };
 
   const handleCopy = () => {
     if (!inviteLink) return;
@@ -43,23 +51,27 @@ export const InviteClientStep = ({
     setTimeout(() => setCopied(false), 1400);
   };
 
-  const handleSendInvite = async () => {
+  const handleSubmit = async () => {
     const trimmed = email.trim();
-    if (!trimmed) return;
     setError(null);
+    setSubmitting(true);
     try {
-      await inviteMutation.mutateAsync({ workspaceId, email: trimmed });
-      onComplete({ email: trimmed, sent: true });
+      const id = await ensureWorkspace();
+      if (trimmed) {
+        await axiosInstance.post(`/workspace/${id}/invite`, { email: trimmed });
+        onComplete({ email: trimmed, sent: true });
+      } else {
+        onComplete({ email: "", sent: false });
+      }
     } catch (err: unknown) {
       setError(
-        extractApiMessage(err) ?? "Failed to send invite. Please try again.",
+        extractApiMessage(err) ?? "Failed to continue. Please try again.",
       );
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleSkip = () => onComplete({ email: "", sent: false });
-
-  const sending = inviteMutation.isPending;
   const hasEmail = email.trim().length > 0;
 
   return (
@@ -95,40 +107,46 @@ export const InviteClientStep = ({
           <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.05]" />
         </div>
 
-        <div className="flex items-center gap-2.5 px-3 py-2.5 bg-white dark:bg-[#151a17] border border-black/[0.08] dark:border-white/[0.07] rounded-xl">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-[#858c87] dark:text-[#6e7672] shrink-0"
-          >
-            <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-            <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-          </svg>
-          <span className="font-mono text-[12px] text-[#5a625e] dark:text-[#a0a8a3] flex-1 truncate">
-            {inviteLink ?? "Generating link…"}
-          </span>
+        {inviteLink ? (
+          <div className="flex items-center gap-2.5 px-3 py-2.5 bg-white dark:bg-[#151a17] border border-black/[0.08] dark:border-white/[0.07] rounded-xl">
+            <Link2
+              size={15}
+              className="text-[#858c87] dark:text-[#6e7672] shrink-0"
+            />
+            <span className="font-mono text-[12px] text-[#5a625e] dark:text-[#a0a8a3] flex-1 truncate">
+              {inviteLink}
+            </span>
+            <button
+              onClick={handleCopy}
+              className="h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[11px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-[#ebebe6] dark:hover:bg-[#222b26] transition-colors shrink-0 cursor-pointer"
+            >
+              {copied ? (
+                <>
+                  <Check size={12} /> Copied
+                </>
+              ) : (
+                <>
+                  <Copy size={12} /> Copy
+                </>
+              )}
+            </button>
+          </div>
+        ) : (
           <button
-            onClick={handleCopy}
-            disabled={!inviteLink}
-            className="h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-[#f3f3ee] dark:bg-[#1c221e] border border-black/[0.08] dark:border-white/[0.07] text-[11px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-[#ebebе6] dark:hover:bg-[#222b26] transition-colors shrink-0 disabled:opacity-40 cursor-pointer"
+            type="button"
+            onClick={handleGenerateLink}
+            disabled={linkLoading}
+            className="w-full h-[42px] inline-flex items-center justify-center gap-2 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] text-[13px] font-medium text-[#1a201c] dark:text-[#e8ece9] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
-            {copied ? (
-              <>
-                <Check size={12} /> Copied
-              </>
+            {linkLoading ? (
+              "Generating…"
             ) : (
               <>
-                <Copy size={12} /> Copy
+                <Link2 size={14} /> Generate shareable link
               </>
             )}
           </button>
-        </div>
+        )}
       </div>
 
       {error && <p className="mt-3 text-[13px] text-red-500">{error}</p>}
@@ -136,17 +154,22 @@ export const InviteClientStep = ({
       <div className="flex gap-2.5 mt-7">
         <button
           onClick={onBack}
-          className="flex-1 h-11 rounded-lg border border-black/[0.08] dark:border-white/[0.07] text-[14px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
+          disabled={submitting}
+          className="flex-1 h-11 rounded-lg border border-black/[0.08] dark:border-white/[0.07] text-[14px] font-medium text-[#5a625e] dark:text-[#a0a8a3] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           Back
         </button>
         <button
-          onClick={hasEmail ? handleSendInvite : handleSkip}
-          disabled={sending}
+          onClick={handleSubmit}
+          disabled={submitting}
           className="flex-[2] h-11 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
-          {sending ? (
-            "Sending…"
+          {submitting ? (
+            hasEmail ? (
+              "Sending…"
+            ) : (
+              "Finishing…"
+            )
           ) : hasEmail ? (
             <>
               Send invite <ArrowRight size={15} />

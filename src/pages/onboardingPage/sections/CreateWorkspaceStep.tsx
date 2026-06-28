@@ -8,54 +8,76 @@ import { extractApiMessage } from "../utils/extractApiMessage";
 const COLORS = ["#5a8a6b", "#7a9bbf", "#b5803a", "#9a7ab8", "#c25a4a", "#4f7aa3"];
 
 interface CreateWorkspaceStepProps {
-  onComplete: (workspace: { id: string; name: string }) => void;
+  /**
+   * Set only if the workspace was already persisted earlier in this flow
+   * (e.g. the user generated an invite link on step 2, then came back). It is
+   * `null` on a fresh run — the workspace is not created here, only on a
+   * committing action in step 2.
+   */
+  workspaceId: string | null;
+  initialName: string;
+  initialDescription: string;
+  initialColor: string;
+  onComplete: (workspace: {
+    name: string;
+    description: string;
+    color: string;
+  }) => void;
 }
 
-export const CreateWorkspaceStep = ({ onComplete }: CreateWorkspaceStepProps) => {
+export const CreateWorkspaceStep = ({
+  workspaceId,
+  initialName,
+  initialDescription,
+  initialColor,
+  onComplete,
+}: CreateWorkspaceStepProps) => {
   const queryClient = useQueryClient();
-  const [name, setName] = useState("");
-  const [desc, setDesc] = useState("");
-  const [color, setColor] = useState(COLORS[0]);
+  const [name, setName] = useState(initialName);
+  const [desc, setDesc] = useState(initialDescription);
+  const [color, setColor] = useState(initialColor || COLORS[0]);
   const [error, setError] = useState<string | null>(null);
 
-  const createMutation = useMutation({
+  // Only used in the edge case where the workspace already exists and the user
+  // came back to edit it — syncs the changes. A fresh run never hits the API
+  // here; persistence is deferred to step 2.
+  const updateMutation = useMutation({
     mutationFn: async (vars: {
       name: string;
       description?: string;
       color: string;
     }) => {
-      const { data } = await axiosInstance.post<{ id: string }>(
-        "/workspace",
-        vars,
-      );
-      return data;
+      await axiosInstance.patch(`/workspace/${workspaceId}`, vars);
     },
     onSuccess: () => {
-      // Refresh the dashboard sidebar so the new workspace shows up
-      // immediately on navigation back.
       queryClient.invalidateQueries({ queryKey: workspacesKey });
     },
   });
 
-  const handleCreate = async () => {
+  const handleContinue = async () => {
     const trimmed = name.trim();
     if (!trimmed) return;
     setError(null);
-    try {
-      const data = await createMutation.mutateAsync({
-        name: trimmed,
-        description: desc.trim() || undefined,
-        color,
-      });
-      onComplete({ id: data.id, name: trimmed });
-    } catch (err: unknown) {
-      setError(
-        extractApiMessage(err) ?? "Failed to create workspace. Please try again.",
-      );
+    const trimmedDesc = desc.trim();
+    if (workspaceId) {
+      try {
+        await updateMutation.mutateAsync({
+          name: trimmed,
+          description: trimmedDesc || undefined,
+          color,
+        });
+      } catch (err: unknown) {
+        setError(
+          extractApiMessage(err) ??
+            "Failed to save changes. Please try again.",
+        );
+        return;
+      }
     }
+    onComplete({ name: trimmed, description: trimmedDesc, color });
   };
 
-  const creating = createMutation.isPending;
+  const saving = updateMutation.isPending;
 
   return (
     <div>
@@ -80,7 +102,7 @@ export const CreateWorkspaceStep = ({ onComplete }: CreateWorkspaceStepProps) =>
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && name.trim()) handleCreate();
+              if (e.key === "Enter" && name.trim()) handleContinue();
             }}
             placeholder="e.g. Northwind Studio"
             className="w-full h-[42px] px-3.5 rounded-lg border border-black/[0.08] dark:border-white/[0.07] bg-white dark:bg-[#151a17] text-[14px] text-[#1a201c] dark:text-[#e8ece9] placeholder-[#858c87] dark:placeholder-[#6e7672] outline-none hover:border-black/[0.14] dark:hover:border-white/[0.14] focus:border-[#5a8a6b] focus:ring-2 focus:ring-[#5a8a6b]/20 transition-all"
@@ -149,12 +171,12 @@ export const CreateWorkspaceStep = ({ onComplete }: CreateWorkspaceStepProps) =>
 
       {error && <p className="mt-4 text-[13px] text-red-500">{error}</p>}
       <button
-        onClick={handleCreate}
-        disabled={!name.trim() || creating}
+        onClick={handleContinue}
+        disabled={!name.trim() || saving}
         className="w-full h-11 mt-6 flex items-center justify-center gap-2 rounded-lg bg-[#5a8a6b] hover:bg-[#4f7a5e] active:bg-[#446b52] text-white text-[14px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
       >
-        {creating ? (
-          "Creating…"
+        {saving ? (
+          "Saving…"
         ) : (
           <>
             Continue <ArrowRight size={15} />

@@ -27,6 +27,10 @@ export const WorkspaceTabBar = ({
   filesHasNew,
   clients,
   onRemoveClient,
+
+
+
+  
 }: WorkspaceTabBarProps) => (
   <div className="flex items-center border-b border-black/[0.06] dark:border-white/[0.05] bg-[#fafaf7] dark:bg-[#0e1310] px-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
     {TABS.map((t) => {
