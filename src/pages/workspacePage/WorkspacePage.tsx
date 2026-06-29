@@ -43,8 +43,7 @@ export const WorkspacePage = () => {
   const { theme, toggleTheme } = useTheme();
   const queryClient = useQueryClient();
 
-  const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<Tab>("messages");
+  const [searchParams, setSearchParams] = useSearchParams();
   const { open: searchOpen, setOpen: setSearchOpen, close: closeSearch } =
     useSearchPalette();
   const [confirmMember, setConfirmMember] = useState<WorkspaceMember | null>(null);
@@ -53,13 +52,25 @@ export const WorkspacePage = () => {
   // Close the mobile sidebar drawer whenever the active workspace changes.
   useEffect(() => setSidebarOpen(false), [id]);
 
-  // Open the tab named in the URL (?tab=…) — used by global search click-through.
-  useEffect(() => {
-    const requested = searchParams.get("tab");
-    if (requested && WORKSPACE_TABS.includes(requested as Tab)) {
-      setTab(requested as Tab);
-    }
-  }, [searchParams]);
+  // The active tab lives in the URL (?tab=…) so it survives a page refresh and
+  // is reachable from global search click-through. Falls back to messages.
+  const tabParam = searchParams.get("tab");
+  const tab: Tab =
+    tabParam && WORKSPACE_TABS.includes(tabParam as Tab)
+      ? (tabParam as Tab)
+      : "messages";
+
+  const setTab = (next: Tab) => {
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        params.set("tab", next);
+        params.delete("focus"); // drop any stale search-result marker
+        return params;
+      },
+      { replace: true },
+    );
+  };
 
   const profileQuery = useCurrentUser();
   const workspacesQuery = useWorkspaces();

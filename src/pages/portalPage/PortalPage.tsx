@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
@@ -31,14 +31,40 @@ const SEARCH_TYPE_TO_PORTAL_TAB: Record<SearchResultType, Tab> = {
   whiteboard_comment: "whiteboard",
 };
 
+const PORTAL_TABS: Tab[] = [
+  "messages",
+  "files",
+  "whiteboard",
+  "shared-links",
+  "shared-tasks",
+];
+
 export const PortalPage = () => {
   const navigate = useNavigate();
   const { setAccessToken } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
-  const [tab, setTab] = useState<Tab>("messages");
+  const [searchParams, setSearchParams] = useSearchParams();
   const { open: searchOpen, setOpen: setSearchOpen, close: closeSearch } =
     useSearchPalette();
+
+  // The active tab lives in the URL (?tab=…) so it survives a page refresh.
+  const tabParam = searchParams.get("tab");
+  const tab: Tab =
+    tabParam && PORTAL_TABS.includes(tabParam as Tab)
+      ? (tabParam as Tab)
+      : "messages";
+
+  const setTab = (next: Tab) => {
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        params.set("tab", next);
+        return params;
+      },
+      { replace: true },
+    );
+  };
 
   const handleSearchNavigate = (result: SearchResult) => {
     setTab(SEARCH_TYPE_TO_PORTAL_TAB[result.type]);
