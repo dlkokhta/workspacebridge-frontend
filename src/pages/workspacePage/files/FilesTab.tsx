@@ -14,12 +14,15 @@ interface FilesTabProps {
   workspaceId: string;
   currentUserId: string;
   workspaceOwnerId: string;
+  /** Per-file upload limit (bytes) from the workspace's owner plan. */
+  maxFileSize?: number;
 }
 
 export const FilesTab = ({
   workspaceId,
   currentUserId,
   workspaceOwnerId,
+  maxFileSize,
 }: FilesTabProps) => {
   const {
     files,
@@ -36,7 +39,7 @@ export const FilesTab = ({
     restoreFile,
     purgeFile,
     clearError,
-  } = useFiles(workspaceId);
+  } = useFiles(workspaceId, maxFileSize);
 
   const [view, setView] = useState<"grid" | "list">("grid");
   const [tab, setTab] = useState<"files" | "trash">("files");
@@ -88,6 +91,7 @@ export const FilesTab = ({
             uploading={uploading}
             uploadProgress={uploadProgress}
             onUpload={uploadFile}
+            maxFileSize={maxFileSize}
           />
         )}
 

@@ -1,16 +1,20 @@
 import { useCallback, useRef, useState, type DragEvent } from "react";
 import { Plus, Upload } from "lucide-react";
+import { UPLOAD_ACCEPT, formatBytes } from "./uploadConstraints";
 
 interface FileUploadZoneProps {
   uploading: boolean;
   uploadProgress: number;
   onUpload: (file: File) => Promise<void>;
+  /** Per-file upload limit (bytes); shown in the hint when known. */
+  maxFileSize?: number;
 }
 
 export const FileUploadZone = ({
   uploading,
   uploadProgress,
   onUpload,
+  maxFileSize,
 }: FileUploadZoneProps) => {
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -61,7 +65,8 @@ export const FileUploadZone = ({
             {uploading ? `Uploading… ${uploadProgress}%` : "+"}
           </p>
           <p className="text-[11px] text-[#858c87] dark:text-[#6e7672] truncate">
-            PDF, images, video, design files, archives — limits depend on your plan.
+            PDF, images, video, design files, archives
+            {maxFileSize ? ` — up to ${formatBytes(maxFileSize)} each` : ""}.
           </p>
         </div>
       </div>
@@ -70,6 +75,7 @@ export const FileUploadZone = ({
         ref={inputRef}
         type="file"
         multiple
+        accept={UPLOAD_ACCEPT}
         className="hidden"
         onChange={(e) => {
           void handleFiles(e.target.files);

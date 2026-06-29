@@ -4,6 +4,7 @@ import { axiosInstance, useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useWorkspaces } from "../../hooks/useWorkspaces";
+import { useWorkspaceDetail } from "../../hooks/useWorkspaceDetail";
 import { getInitials } from "../../utils/getInitials";
 import { MessagesTab } from "../workspacePage/messages/MessagesTab";
 import { WhiteboardTab } from "../workspacePage/whiteboard/WhiteboardTab";
@@ -51,6 +52,10 @@ export const PortalPage = () => {
   // pick the first one the API returns.
   const workspace = workspacesQuery.data?.[0] ?? null;
   const loading = profileQuery.isLoading || workspacesQuery.isLoading;
+
+  // Fetch the workspace detail purely for the per-file upload limit, so the
+  // client's Files tab can pre-check size before uploading.
+  const workspaceDetail = useWorkspaceDetail(workspace?.id ?? "").data ?? null;
 
   useEffect(() => {
     if (profileQuery.error || workspacesQuery.error) {
@@ -103,6 +108,7 @@ export const PortalPage = () => {
             workspaceId={workspace.id}
             currentUserId={profile.id}
             workspaceOwnerId=""
+            maxFileSize={workspaceDetail?.maxFileSize}
           />
         )}
         {tab === "whiteboard" && workspace && (

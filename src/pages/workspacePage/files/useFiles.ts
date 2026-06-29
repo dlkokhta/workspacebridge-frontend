@@ -22,8 +22,11 @@ interface UseFilesResult {
   clearError: () => void;
 }
 
-export const useFiles = (workspaceId: string): UseFilesResult => {
-  const list = useFilesList(workspaceId);
+export const useFiles = (
+  workspaceId: string,
+  maxFileSize?: number,
+): UseFilesResult => {
+  const list = useFilesList(workspaceId, maxFileSize);
   const trash = useFileTrash(workspaceId);
 
   const clearError = useCallback(() => {

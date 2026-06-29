@@ -176,6 +176,7 @@ export const WorkspacePage = () => {
               workspaceId={id}
               currentUserId={profile?.id ?? ""}
               workspaceOwnerId={workspace.ownerId}
+              maxFileSize={workspace.maxFileSize}
             />
           )}
           {tab === "whiteboard" && (

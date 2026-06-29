@@ -9,8 +9,9 @@ import {
   type FileSummary,
   type TrashedFile,
 } from "./filesKeys";
+import { validateUploadFile } from "./uploadConstraints";
 
-export const useFilesList = (workspaceId: string) => {
+export const useFilesList = (workspaceId: string, maxFileSize?: number) => {
   const { accessToken } = useAuth();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
@@ -142,6 +143,13 @@ export const useFilesList = (workspaceId: string) => {
   const uploadFile = useCallback(
     async (file: File) => {
       setError(null);
+      // Fail fast on the client so an oversized or unsupported file is rejected
+      // before any bytes go over the wire. The server still re-checks.
+      const validationError = validateUploadFile(file, maxFileSize);
+      if (validationError) {
+        setError(validationError);
+        throw new Error(validationError);
+      }
       try {
         await uploadMutation.mutateAsync(file);
       } catch (err) {
@@ -150,7 +158,7 @@ export const useFilesList = (workspaceId: string) => {
         throw new Error(message);
       }
     },
-    [uploadMutation],
+    [uploadMutation, maxFileSize],
   );
 
   const downloadFile = useCallback(async (fileId: string) => {

@@ -31,6 +31,8 @@ export interface WorkspaceDetail extends Workspace {
   status: string;
   ownerId: string;
   members: WorkspaceMember[];
+  /** Per-file upload limit in bytes, derived from the owner's plan. */
+  maxFileSize: number;
 }
 
 export interface Message {

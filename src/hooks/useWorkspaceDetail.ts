@@ -14,5 +14,6 @@ export const useWorkspaceDetail = (workspaceId: string) => {
       );
       return data;
     },
+    enabled: Boolean(workspaceId),
   });
 };
