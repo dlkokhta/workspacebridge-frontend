@@ -6,6 +6,7 @@ import { useFileComments, type FileComment } from "./useFileComments";
 interface FileCommentsModalProps {
   fileId: string;
   fileName: string;
+  workspaceId: string;
   currentUserId: string;
   workspaceOwnerId: string;
   onClose: () => void;
@@ -28,6 +29,7 @@ const formatDate = (iso: string): string =>
 export const FileCommentsModal = ({
   fileId,
   fileName,
+  workspaceId,
   currentUserId,
   workspaceOwnerId,
   onClose,
@@ -40,7 +42,7 @@ export const FileCommentsModal = ({
     addComment,
     adding,
     deleteComment,
-  } = useFileComments(fileId);
+  } = useFileComments(fileId, workspaceId);
   const [body, setBody] = useState("");
 
   const canDelete = (comment: FileComment): boolean =>

@@ -17,13 +17,18 @@ export const DeleteBoardModal = ({
         <p className="text-[14px] font-semibold text-[#1a201c] dark:text-[#fafaf7]">
           Delete whiteboard
         </p>
-        <p className="text-[13px] text-[#5a625e] dark:text-[#a0a8a3]">
-          Are you sure you want to delete{" "}
-          <span className="font-medium text-[#1a201c] dark:text-[#fafaf7]">
-            &ldquo;{boardName}&rdquo;
-          </span>
-          ? This cannot be undone.
-        </p>
+        <div className="flex flex-col gap-1 text-[13px] text-[#5a625e] dark:text-[#a0a8a3]">
+          <p>Are you sure you want to delete this whiteboard?</p>
+          {/* Long names are truncated to keep the modal width; the full name
+              stays available via the native title tooltip on hover. */}
+          <p
+            className="truncate font-medium text-[#1a201c] dark:text-[#fafaf7]"
+            title={boardName}
+          >
+            {boardName}
+          </p>
+          <p>This cannot be undone.</p>
+        </div>
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}

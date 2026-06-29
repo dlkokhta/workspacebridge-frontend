@@ -17,13 +17,20 @@ export const PurgeFileModal = ({
         <p className="text-[14px] font-semibold text-[#1a201c] dark:text-[#fafaf7]">
           Delete permanently
         </p>
-        <p className="text-[13px] text-[#5a625e] dark:text-[#a0a8a3]">
-          <span className="font-medium text-[#1a201c] dark:text-[#fafaf7]">
-            &ldquo;{fileName}&rdquo;
-          </span>{" "}
-          will be removed from storage and cannot be recovered. This frees
-          space in your workspace immediately.
-        </p>
+        <div className="flex flex-col gap-1 text-[13px] text-[#5a625e] dark:text-[#a0a8a3]">
+          {/* Long names are truncated to keep the modal width; the full name
+              stays available via the native title tooltip on hover. */}
+          <p
+            className="truncate font-medium text-[#1a201c] dark:text-[#fafaf7]"
+            title={fileName}
+          >
+            {fileName}
+          </p>
+          <p>
+            will be permanently removed from storage and cannot be recovered.
+            This frees space in your workspace immediately.
+          </p>
+        </div>
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}

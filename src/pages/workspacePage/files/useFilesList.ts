@@ -86,9 +86,16 @@ export const useFilesList = (workspaceId: string, maxFileSize?: number) => {
       return data;
     },
     onSuccess: (created) => {
+      // Dedup by id: the uploader is in the workspace room too, so the
+      // "fileCreated" broadcast can land before this resolves. Without the
+      // guard the just-uploaded file appears twice until a refresh.
       queryClient.setQueryData<FileSummary[]>(
         filesKeys.list(workspaceId),
-        (prev) => (prev ? [created, ...prev] : [created]),
+        (prev) => {
+          if (!prev) return [created];
+          if (prev.some((f) => f.id === created.id)) return prev;
+          return [created, ...prev];
+        },
       );
     },
     onSettled: () => {

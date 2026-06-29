@@ -152,8 +152,8 @@ export const SessionTimeoutWarning = () => {
             </div>
 
             <p className="mt-3 text-[13px] leading-[1.5] text-[#5a625e] dark:text-[#a0a8a3]">
-              You&apos;ve been inactive for a while. For your security
-              you&apos;ll be logged out in{" "}
+              You’ve been inactive for a while. For your security
+              you’ll be logged out in{" "}
               <span className="font-semibold text-[#1a201c] dark:text-[#e8ece9]">
                 {secondsLeft} second{secondsLeft === 1 ? "" : "s"}
               </span>

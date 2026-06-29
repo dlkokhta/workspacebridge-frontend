@@ -152,6 +152,7 @@ export const FilesTab = ({
         <FileCommentsModal
           fileId={commentsFor.id}
           fileName={commentsFor.name}
+          workspaceId={workspaceId}
           currentUserId={currentUserId}
           workspaceOwnerId={workspaceOwnerId}
           onClose={() => setCommentsFor(null)}
