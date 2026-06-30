@@ -8,6 +8,8 @@ import {
   FileText,
   ScrollText,
   Settings,
+  Bug,
+  AlertTriangle,
   ArrowLeft,
   LogOut,
   Moon,
@@ -22,6 +24,8 @@ export type AdminTab =
   | "sessions"
   | "files"
   | "audit-log"
+  | "bug-reports"
+  | "error-logs"
   | "settings";
 
 const TABS: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
@@ -32,6 +36,8 @@ const TABS: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
   { id: "sessions", label: "Sessions", icon: <Monitor size={14} /> },
   { id: "files", label: "Files", icon: <FileText size={14} /> },
   { id: "audit-log", label: "Audit Log", icon: <ScrollText size={14} /> },
+  { id: "bug-reports", label: "Bug Reports", icon: <Bug size={14} /> },
+  { id: "error-logs", label: "Error Logs", icon: <AlertTriangle size={14} /> },
   { id: "settings", label: "Settings", icon: <Settings size={14} /> },
 ];
 

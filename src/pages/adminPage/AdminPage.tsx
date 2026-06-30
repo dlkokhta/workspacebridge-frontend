@@ -10,6 +10,8 @@ import { InvitesTable } from "./components/InvitesTable";
 import { SessionsTable } from "./components/SessionsTable";
 import { FilesTable } from "./components/FilesTable";
 import { AuditLogTable } from "./components/AuditLogTable";
+import { BugReportsTable } from "./components/BugReportsTable";
+import { ErrorLogsTable } from "./components/ErrorLogsTable";
 import { SettingsTab } from "./components/SettingsTab";
 
 const TAB_TITLES: Record<AdminTab, string> = {
@@ -20,6 +22,8 @@ const TAB_TITLES: Record<AdminTab, string> = {
   sessions: "Sessions",
   files: "Files",
   "audit-log": "Audit Log",
+  "bug-reports": "Bug Reports",
+  "error-logs": "Error Logs",
   settings: "Settings",
 };
 
@@ -86,6 +90,8 @@ export const AdminPage = () => {
             {activeTab === "sessions" && <SessionsTable />}
             {activeTab === "files" && <FilesTable />}
             {activeTab === "audit-log" && <AuditLogTable />}
+            {activeTab === "bug-reports" && <BugReportsTable />}
+            {activeTab === "error-logs" && <ErrorLogsTable />}
             {activeTab === "settings" && <SettingsTab />}
           </div>
         </div>

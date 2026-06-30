@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
+import { logClientError } from "../utils/errorLogger";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -22,8 +23,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Surface to the console for debugging; no remote logging / PII here.
+    // Surface to the console for debugging, and forward to the backend (best
+    // effort) so a render crash a tester hit is visible in the admin panel.
     console.error("Unhandled UI error:", error, info.componentStack);
+    logClientError({
+      source: "react-error-boundary",
+      message: error.message || "Render error",
+      stack: error.stack,
+      componentStack: info.componentStack ?? undefined,
+    });
   }
 
   private handleReload = (): void => {

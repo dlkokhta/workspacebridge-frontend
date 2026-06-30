@@ -116,8 +116,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return axiosInstance(originalRequest);
           }
-          // Refresh failed — the session is gone; send the user to login.
-          window.location.href = "/login";
+          // Refresh failed — the session is gone. Background telemetry calls
+          // opt out of the redirect so an error on a public page can't bounce
+          // an anonymous visitor to login.
+          if (!originalRequest.skipAuthRedirect) {
+            window.location.href = "/login";
+          }
         }
         return Promise.reject(error);
       },

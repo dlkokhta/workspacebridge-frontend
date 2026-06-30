@@ -15,6 +15,11 @@ import { ToastProvider } from "./context/ToastContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { toast } from "./components/toast/toast";
 import { getApiErrorMessage } from "./utils/getApiErrorMessage";
+import { installGlobalErrorLogging } from "./utils/errorLogger";
+
+// Capture uncaught errors / promise rejections platform-wide so tester crashes
+// reach the backend even when nothing is reported manually.
+installGlobalErrorLogging();
 
 const queryClient = new QueryClient({
   // Global safety net: any failed mutation that doesn't handle its own error
