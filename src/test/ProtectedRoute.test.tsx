@@ -12,25 +12,38 @@ const USER_TOKEN =
   btoa(JSON.stringify({ userId: '1', email: 'a@b.com', role: 'USER' })) +
   '.sig';
 
+const CLIENT_TOKEN =
+  'eyJhbGciOiJIUzI1NiJ9.' +
+  btoa(JSON.stringify({ userId: '2', email: 'c@d.com', role: 'CLIENT' })) +
+  '.sig';
+
+const FREELANCER_TOKEN =
+  'eyJhbGciOiJIUzI1NiJ9.' +
+  btoa(JSON.stringify({ userId: '3', email: 'e@f.com', role: 'FREELANCER' })) +
+  '.sig';
+
 const ADMIN_TOKEN =
   'eyJhbGciOiJIUzI1NiJ9.' +
   btoa(JSON.stringify({ userId: '1', email: 'a@b.com', role: 'ADMIN' })) +
   '.sig';
 
-function renderProtectedRoute(requiredRole?: string) {
+type Role = 'ADMIN' | 'CLIENT' | 'FREELANCER';
+
+function renderProtectedRoute(requiredRole?: string, allowedRoles?: Role[]) {
   return render(
     <MemoryRouter initialEntries={['/protected']}>
       <Routes>
         <Route
           path="/protected"
           element={
-            <ProtectedRoute requiredRole={requiredRole}>
+            <ProtectedRoute requiredRole={requiredRole} allowedRoles={allowedRoles}>
               <div>Protected Content</div>
             </ProtectedRoute>
           }
         />
         <Route path="/login" element={<div>Login Page</div>} />
-        <Route path="/items" element={<div>Items Page</div>} />
+        <Route path="/dashboard" element={<div>Dashboard Page</div>} />
+        <Route path="/portal" element={<div>Portal Page</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -55,10 +68,34 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('Protected Content')).toBeInTheDocument();
   });
 
-  it('redirects to /items when token role does not match requiredRole', () => {
+  it('redirects to /dashboard when token role does not match requiredRole', () => {
     mockedUseAuth.mockReturnValue({ accessToken: USER_TOKEN, setAccessToken: vi.fn(), isLoading: false });
     renderProtectedRoute('ADMIN');
-    expect(screen.getByText('Items Page')).toBeInTheDocument();
+    expect(screen.getByText('Dashboard Page')).toBeInTheDocument();
+  });
+
+  it('redirects a client to /portal when the route requires another role', () => {
+    mockedUseAuth.mockReturnValue({ accessToken: CLIENT_TOKEN, setAccessToken: vi.fn(), isLoading: false });
+    renderProtectedRoute('ADMIN');
+    expect(screen.getByText('Portal Page')).toBeInTheDocument();
+  });
+
+  it('redirects a client to /portal from a freelancer-only route', () => {
+    mockedUseAuth.mockReturnValue({ accessToken: CLIENT_TOKEN, setAccessToken: vi.fn(), isLoading: false });
+    renderProtectedRoute(undefined, ['FREELANCER', 'ADMIN']);
+    expect(screen.getByText('Portal Page')).toBeInTheDocument();
+  });
+
+  it('redirects a freelancer to /dashboard from a client-only route', () => {
+    mockedUseAuth.mockReturnValue({ accessToken: FREELANCER_TOKEN, setAccessToken: vi.fn(), isLoading: false });
+    renderProtectedRoute(undefined, ['CLIENT']);
+    expect(screen.getByText('Dashboard Page')).toBeInTheDocument();
+  });
+
+  it('renders children when token role is in allowedRoles', () => {
+    mockedUseAuth.mockReturnValue({ accessToken: FREELANCER_TOKEN, setAccessToken: vi.fn(), isLoading: false });
+    renderProtectedRoute(undefined, ['FREELANCER', 'ADMIN']);
+    expect(screen.getByText('Protected Content')).toBeInTheDocument();
   });
 
   it('renders children when token role matches requiredRole', () => {

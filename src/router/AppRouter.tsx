@@ -21,6 +21,9 @@ import { AdminPage } from "../pages/adminPage";
 import { TwoFactorVerifyPage } from "../pages/twoFactorVerifyPage";
 import { AppShell } from "../layouts/AppShell";
 
+// Freelancer-side pages. Clients are sent to their portal instead.
+const STAFF_ROLES: ("FREELANCER" | "ADMIN")[] = ["FREELANCER", "ADMIN"];
+
 export const AppRouter = () => {
   return (
     <Routes>
@@ -47,7 +50,7 @@ export const AppRouter = () => {
       <Route
         path={ROUTES.Onboarding}
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={STAFF_ROLES}>
             <OnboardingPage />
           </ProtectedRoute>
         }
@@ -55,7 +58,7 @@ export const AppRouter = () => {
       <Route
         path={ROUTES.Workspace}
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={STAFF_ROLES}>
             <WorkspacePage />
           </ProtectedRoute>
         }
@@ -64,7 +67,7 @@ export const AppRouter = () => {
       {/* AppShell layout — sidebar always visible, right side changes */}
       <Route
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={STAFF_ROLES}>
             <AppShell />
           </ProtectedRoute>
         }
@@ -77,7 +80,7 @@ export const AppRouter = () => {
       <Route
         path={ROUTES.Portal}
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["CLIENT"]}>
             <PortalPage />
           </ProtectedRoute>
         }
